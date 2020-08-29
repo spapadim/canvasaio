@@ -4,8 +4,8 @@ import unittest
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.account import (
+from canvasaio import Canvas
+from canvasaio.account import (
     Account,
     AccountNotification,
     AccountReport,
@@ -13,26 +13,26 @@ from canvasapi.account import (
     Role,
     SSOSettings,
 )
-from canvasapi.authentication_provider import AuthenticationProvider
-from canvasapi.authentication_event import AuthenticationEvent
-from canvasapi.course import Course
-from canvasapi.enrollment import Enrollment
-from canvasapi.enrollment_term import EnrollmentTerm
-from canvasapi.external_tool import ExternalTool
-from canvasapi.exceptions import CanvasException, RequiredFieldMissing
-from canvasapi.feature import Feature, FeatureFlag
-from canvasapi.grading_period import GradingPeriod
-from canvasapi.grading_standard import GradingStandard
-from canvasapi.group import Group, GroupCategory
-from canvasapi.login import Login
-from canvasapi.outcome import OutcomeGroup, OutcomeLink
-from canvasapi.outcome_import import OutcomeImport
-from canvasapi.paginated_list import PaginatedList
-from canvasapi.rubric import Rubric
-from canvasapi.scope import Scope
-from canvasapi.sis_import import SisImport
-from canvasapi.user import User
-from canvasapi.content_migration import ContentMigration, Migrator
+from canvasaio.authentication_provider import AuthenticationProvider
+from canvasaio.authentication_event import AuthenticationEvent
+from canvasaio.course import Course
+from canvasaio.enrollment import Enrollment
+from canvasaio.enrollment_term import EnrollmentTerm
+from canvasaio.external_tool import ExternalTool
+from canvasaio.exceptions import CanvasException, RequiredFieldMissing
+from canvasaio.feature import Feature, FeatureFlag
+from canvasaio.grading_period import GradingPeriod
+from canvasaio.grading_standard import GradingStandard
+from canvasaio.group import Group, GroupCategory
+from canvasaio.login import Login
+from canvasaio.outcome import OutcomeGroup, OutcomeLink
+from canvasaio.outcome_import import OutcomeImport
+from canvasaio.paginated_list import PaginatedList
+from canvasaio.rubric import Rubric
+from canvasaio.scope import Scope
+from canvasaio.sis_import import SisImport
+from canvasaio.user import User
+from canvasaio.content_migration import ContentMigration, Migrator
 from tests import settings
 from tests.util import register_uris
 

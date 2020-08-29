@@ -5,45 +5,45 @@ import uuid
 import requests
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.assignment import Assignment, AssignmentGroup, AssignmentOverride
-from canvasapi.blueprint import BlueprintSubscription
-from canvasapi.blueprint import BlueprintTemplate
-from canvasapi.course import Course, CourseNickname, Page, LatePolicy
-from canvasapi.discussion_topic import DiscussionTopic
-from canvasapi.gradebook_history import (
+from canvasaio import Canvas
+from canvasaio.assignment import Assignment, AssignmentGroup, AssignmentOverride
+from canvasaio.blueprint import BlueprintSubscription
+from canvasaio.blueprint import BlueprintTemplate
+from canvasaio.course import Course, CourseNickname, Page, LatePolicy
+from canvasaio.discussion_topic import DiscussionTopic
+from canvasaio.gradebook_history import (
     Day,
     Grader,
     SubmissionVersion,
     SubmissionHistory,
 )
-from canvasapi.grading_standard import GradingStandard
-from canvasapi.enrollment import Enrollment
-from canvasapi.course_epub_export import CourseEpubExport
-from canvasapi.exceptions import ResourceDoesNotExist, RequiredFieldMissing
-from canvasapi.external_feed import ExternalFeed
-from canvasapi.external_tool import ExternalTool
-from canvasapi.feature import Feature, FeatureFlag
-from canvasapi.file import File
-from canvasapi.folder import Folder
-from canvasapi.grading_period import GradingPeriod
-from canvasapi.group import Group, GroupCategory
-from canvasapi.license import License
-from canvasapi.module import Module
-from canvasapi.outcome import OutcomeGroup, OutcomeLink
-from canvasapi.outcome_import import OutcomeImport
-from canvasapi.paginated_list import PaginatedList
-from canvasapi.progress import Progress
-from canvasapi.quiz import Quiz, QuizExtension, QuizAssignmentOverrideSet
-from canvasapi.rubric import Rubric, RubricAssociation
-from canvasapi.section import Section
-from canvasapi.submission import GroupedSubmission, Submission
-from canvasapi.tab import Tab
-from canvasapi.user import User
-from canvasapi.usage_rights import UsageRights
-from canvasapi.content_migration import ContentMigration, Migrator
-from canvasapi.content_export import ContentExport
-from canvasapi.custom_gradebook_columns import CustomGradebookColumn
+from canvasaio.grading_standard import GradingStandard
+from canvasaio.enrollment import Enrollment
+from canvasaio.course_epub_export import CourseEpubExport
+from canvasaio.exceptions import ResourceDoesNotExist, RequiredFieldMissing
+from canvasaio.external_feed import ExternalFeed
+from canvasaio.external_tool import ExternalTool
+from canvasaio.feature import Feature, FeatureFlag
+from canvasaio.file import File
+from canvasaio.folder import Folder
+from canvasaio.grading_period import GradingPeriod
+from canvasaio.group import Group, GroupCategory
+from canvasaio.license import License
+from canvasaio.module import Module
+from canvasaio.outcome import OutcomeGroup, OutcomeLink
+from canvasaio.outcome_import import OutcomeImport
+from canvasaio.paginated_list import PaginatedList
+from canvasaio.progress import Progress
+from canvasaio.quiz import Quiz, QuizExtension, QuizAssignmentOverrideSet
+from canvasaio.rubric import Rubric, RubricAssociation
+from canvasaio.section import Section
+from canvasaio.submission import GroupedSubmission, Submission
+from canvasaio.tab import Tab
+from canvasaio.user import User
+from canvasaio.usage_rights import UsageRights
+from canvasaio.content_migration import ContentMigration, Migrator
+from canvasaio.content_export import ContentExport
+from canvasaio.custom_gradebook_columns import CustomGradebookColumn
 from tests import settings
 from tests.util import cleanup_file, register_uris
 
@@ -951,7 +951,7 @@ class TestCourse(unittest.TestCase):
     def test_get_collaborations(self, m):
         register_uris({"course": ["get_collaborations"]}, m)
 
-        from canvasapi.collaboration import Collaboration
+        from canvasaio.collaboration import Collaboration
 
         collab_list = self.course.get_collaborations()
 

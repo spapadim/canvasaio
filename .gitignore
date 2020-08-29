@@ -13,6 +13,7 @@
 /coverage.xml
 /dist/
 /docs/_build/
+/.venv/
 /env/
 /env3/
 /htmlcov/

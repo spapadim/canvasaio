@@ -2,9 +2,9 @@ import unittest
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.collaboration import Collaboration, Collaborator
-from canvasapi.paginated_list import PaginatedList
+from canvasaio import Canvas
+from canvasaio.collaboration import Collaboration, Collaborator
+from canvasaio.paginated_list import PaginatedList
 from tests import settings
 from tests.util import register_uris
 

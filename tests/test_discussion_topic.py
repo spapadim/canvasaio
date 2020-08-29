@@ -2,11 +2,11 @@ import unittest
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.course import Course
-from canvasapi.discussion_topic import DiscussionTopic, DiscussionEntry
-from canvasapi.exceptions import Forbidden
-from canvasapi.group import Group
+from canvasaio import Canvas
+from canvasaio.course import Course
+from canvasaio.discussion_topic import DiscussionTopic, DiscussionEntry
+from canvasaio.exceptions import Forbidden
+from canvasaio.group import Group
 from tests import settings
 from tests.util import register_uris
 

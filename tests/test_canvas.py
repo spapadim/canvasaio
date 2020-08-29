@@ -5,23 +5,23 @@ from datetime import datetime
 import pytz
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.account import Account
-from canvasapi.appointment_group import AppointmentGroup
-from canvasapi.calendar_event import CalendarEvent
-from canvasapi.comm_message import CommMessage
-from canvasapi.conversation import Conversation
-from canvasapi.course import Course, CourseNickname
-from canvasapi.course_epub_export import CourseEpubExport
-from canvasapi.discussion_topic import DiscussionTopic
-from canvasapi.exceptions import RequiredFieldMissing, ResourceDoesNotExist
-from canvasapi.file import File
-from canvasapi.group import Group, GroupCategory
-from canvasapi.outcome import Outcome, OutcomeGroup
-from canvasapi.paginated_list import PaginatedList
-from canvasapi.progress import Progress
-from canvasapi.section import Section
-from canvasapi.user import User
+from canvasaio import Canvas
+from canvasaio.account import Account
+from canvasaio.appointment_group import AppointmentGroup
+from canvasaio.calendar_event import CalendarEvent
+from canvasaio.comm_message import CommMessage
+from canvasaio.conversation import Conversation
+from canvasaio.course import Course, CourseNickname
+from canvasaio.course_epub_export import CourseEpubExport
+from canvasaio.discussion_topic import DiscussionTopic
+from canvasaio.exceptions import RequiredFieldMissing, ResourceDoesNotExist
+from canvasaio.file import File
+from canvasaio.group import Group, GroupCategory
+from canvasaio.outcome import Outcome, OutcomeGroup
+from canvasaio.paginated_list import PaginatedList
+from canvasaio.progress import Progress
+from canvasaio.section import Section
+from canvasaio.user import User
 from tests import settings
 from tests.util import register_uris
 

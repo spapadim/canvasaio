@@ -2,8 +2,8 @@ import unittest
 
 import requests_mock
 
-from canvasapi.canvas import Canvas
-from canvasapi.progress import Progress
+from canvasaio.canvas import Canvas
+from canvasaio.progress import Progress
 from tests import settings
 from tests.util import register_uris
 

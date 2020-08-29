@@ -2,9 +2,9 @@ import unittest
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.exceptions import RequiredFieldMissing
-from canvasapi.grading_period import GradingPeriod
+from canvasaio import Canvas
+from canvasaio.exceptions import RequiredFieldMissing
+from canvasaio.grading_period import GradingPeriod
 from tests.util import register_uris
 from tests import settings
 

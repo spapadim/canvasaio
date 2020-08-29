@@ -2,7 +2,7 @@ import re
 from setuptools import setup
 
 # get version number
-with open('canvasapi/__init__.py', 'r') as fd:
+with open('canvasaio/__init__.py', 'r') as fd:
     version = re.search(
         r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
         fd.read(),
@@ -13,14 +13,13 @@ if not version:
     raise RuntimeError('Cannot find version information')
 
 setup(
-    name='canvasapi',
+    name='canvasaio',
     version=version,
-    description='API wrapper for the Canvas LMS',
-    url='https://github.com/ucfopen/canvasapi',
-    author='University of Central Florida - Center for Distributed Learning',
-    author_email='techrangers@ucf.edu',
+    description='Port of canvasapi by UCF to asyncio',
+    url='https://github.com/spapadim/canvasaio',
+    author_email='spapadim@gmail.com',
     license='MIT License',
-    packages=['canvasapi'],
+    packages=['canvasaio'],
     include_package_data=True,
     install_requires=['pytz', 'requests'],
     zip_safe=False,

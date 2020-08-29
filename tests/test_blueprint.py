@@ -2,11 +2,11 @@ import unittest
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.blueprint import BlueprintMigration
-from canvasapi.blueprint import ChangeRecord
-from canvasapi.course import Course
-from canvasapi.paginated_list import PaginatedList
+from canvasaio import Canvas
+from canvasaio.blueprint import BlueprintMigration
+from canvasaio.blueprint import ChangeRecord
+from canvasaio.course import Course
+from canvasaio.paginated_list import PaginatedList
 from tests import settings
 from tests.util import register_uris
 

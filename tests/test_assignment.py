@@ -3,18 +3,18 @@ import uuid
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.assignment import (
+from canvasaio import Canvas
+from canvasaio.assignment import (
     Assignment,
     AssignmentGroup,
     AssignmentOverride,
     AssignmentExtension,
 )
-from canvasapi.exceptions import CanvasException, RequiredFieldMissing
-from canvasapi.peer_review import PeerReview
-from canvasapi.progress import Progress
-from canvasapi.submission import Submission
-from canvasapi.user import UserDisplay
+from canvasaio.exceptions import CanvasException, RequiredFieldMissing
+from canvasaio.peer_review import PeerReview
+from canvasaio.progress import Progress
+from canvasaio.submission import Submission
+from canvasaio.user import UserDisplay
 from tests import settings
 from tests.util import register_uris, cleanup_file
 

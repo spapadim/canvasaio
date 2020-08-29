@@ -2,8 +2,8 @@ import unittest
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.outcome_import import OutcomeImport
+from canvasaio import Canvas
+from canvasaio.outcome_import import OutcomeImport
 from tests import settings
 
 

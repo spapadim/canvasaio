@@ -7,7 +7,7 @@ import requests
 
 sys.path.append(os.path.join(sys.path[0], '..'))
 
-import canvasapi  # noqa
+import canvasaio  # noqa
 
 
 def validate_method(themethod, quiet=False):
@@ -141,7 +141,7 @@ def validate_docstring(method_string, call_line, quiet):
 
 def test_methods():
     methods = set()
-    for _, module in inspect.getmembers(canvasapi, inspect.ismodule):
+    for _, module in inspect.getmembers(canvasaio, inspect.ismodule):
         for _, theclass in inspect.getmembers(module, inspect.isclass):
             for _, method in inspect.getmembers(theclass, inspect.isroutine):
                 methods.add(method)

@@ -3,25 +3,25 @@ import uuid
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.assignment import Assignment
-from canvasapi.authentication_event import AuthenticationEvent
-from canvasapi.avatar import Avatar
-from canvasapi.calendar_event import CalendarEvent
-from canvasapi.communication_channel import CommunicationChannel
-from canvasapi.content_export import ContentExport
-from canvasapi.content_migration import ContentMigration, Migrator
-from canvasapi.course import Course
-from canvasapi.enrollment import Enrollment
-from canvasapi.feature import Feature, FeatureFlag
-from canvasapi.file import File
-from canvasapi.folder import Folder
-from canvasapi.login import Login
-from canvasapi.license import License
-from canvasapi.page_view import PageView
-from canvasapi.paginated_list import PaginatedList
-from canvasapi.user import User
-from canvasapi.usage_rights import UsageRights
+from canvasaio import Canvas
+from canvasaio.assignment import Assignment
+from canvasaio.authentication_event import AuthenticationEvent
+from canvasaio.avatar import Avatar
+from canvasaio.calendar_event import CalendarEvent
+from canvasaio.communication_channel import CommunicationChannel
+from canvasaio.content_export import ContentExport
+from canvasaio.content_migration import ContentMigration, Migrator
+from canvasaio.course import Course
+from canvasaio.enrollment import Enrollment
+from canvasaio.feature import Feature, FeatureFlag
+from canvasaio.file import File
+from canvasaio.folder import Folder
+from canvasaio.login import Login
+from canvasaio.license import License
+from canvasaio.page_view import PageView
+from canvasaio.paginated_list import PaginatedList
+from canvasaio.user import User
+from canvasaio.usage_rights import UsageRights
 from tests import settings
 from tests.util import cleanup_file, register_uris
 

@@ -2,8 +2,8 @@ import unittest
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.authentication_provider import AuthenticationProvider
+from canvasaio import Canvas
+from canvasaio.authentication_provider import AuthenticationProvider
 from tests import settings
 from tests.util import register_uris
 

@@ -2,13 +2,13 @@ import unittest
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.account import Account
-from canvasapi.content_migration import ContentMigration, MigrationIssue
-from canvasapi.course import Course
-from canvasapi.group import Group
-from canvasapi.progress import Progress
-from canvasapi.user import User
+from canvasaio import Canvas
+from canvasaio.account import Account
+from canvasaio.content_migration import ContentMigration, MigrationIssue
+from canvasaio.course import Course
+from canvasaio.group import Group
+from canvasaio.progress import Progress
+from canvasaio.user import User
 from tests import settings
 from tests.util import register_uris
 

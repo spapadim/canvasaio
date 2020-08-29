@@ -2,11 +2,11 @@ import unittest
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.bookmark import Bookmark
-from canvasapi.course import Course
-from canvasapi.favorite import Favorite
-from canvasapi.group import Group
+from canvasaio import Canvas
+from canvasaio.bookmark import Bookmark
+from canvasaio.course import Course
+from canvasaio.favorite import Favorite
+from canvasaio.group import Group
 from tests import settings
 from tests.util import register_uris
 

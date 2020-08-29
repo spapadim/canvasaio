@@ -3,8 +3,8 @@ import uuid
 
 import requests_mock
 
-from canvasapi.canvas import Canvas
-from canvasapi.upload import Uploader
+from canvasaio.canvas import Canvas
+from canvasaio.upload import Uploader
 from tests import settings
 from tests.util import cleanup_file, register_uris
 

@@ -5,8 +5,8 @@ from urllib.parse import quote
 import requests
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.exceptions import (
+from canvasaio import Canvas
+from canvasaio.exceptions import (
     BadRequest,
     CanvasException,
     Conflict,

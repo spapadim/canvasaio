@@ -2,8 +2,8 @@ import unittest
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.rubric import RubricAssociation
+from canvasaio import Canvas
+from canvasaio.rubric import RubricAssociation
 from tests import settings
 from tests.util import register_uris
 

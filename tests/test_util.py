@@ -3,10 +3,10 @@ import uuid
 
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.course import CourseNickname
-from canvasapi.user import User
-from canvasapi.util import (
+from canvasaio import Canvas
+from canvasaio.course import CourseNickname
+from canvasaio.user import User
+from canvasaio.util import (
     clean_headers,
     combine_kwargs,
     get_institution_url,

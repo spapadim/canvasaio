@@ -5,21 +5,21 @@ import uuid
 import requests
 import requests_mock
 
-from canvasapi import Canvas
-from canvasapi.assignment import AssignmentOverride
-from canvasapi.group import Group, GroupMembership, GroupCategory
-from canvasapi.course import Page
-from canvasapi.discussion_topic import DiscussionTopic
-from canvasapi.exceptions import RequiredFieldMissing
-from canvasapi.external_feed import ExternalFeed
-from canvasapi.file import File
-from canvasapi.folder import Folder
-from canvasapi.license import License
-from canvasapi.paginated_list import PaginatedList
-from canvasapi.tab import Tab
-from canvasapi.content_migration import ContentMigration, Migrator
-from canvasapi.content_export import ContentExport
-from canvasapi.usage_rights import UsageRights
+from canvasaio import Canvas
+from canvasaio.assignment import AssignmentOverride
+from canvasaio.group import Group, GroupMembership, GroupCategory
+from canvasaio.course import Page
+from canvasaio.discussion_topic import DiscussionTopic
+from canvasaio.exceptions import RequiredFieldMissing
+from canvasaio.external_feed import ExternalFeed
+from canvasaio.file import File
+from canvasaio.folder import Folder
+from canvasaio.license import License
+from canvasaio.paginated_list import PaginatedList
+from canvasaio.tab import Tab
+from canvasaio.content_migration import ContentMigration, Migrator
+from canvasaio.content_export import ContentExport
+from canvasaio.usage_rights import UsageRights
 from tests import settings
 from tests.util import cleanup_file, register_uris
 
@@ -126,7 +126,7 @@ class TestGroup(unittest.TestCase):
     def test_get_users(self, m):
         register_uris({"group": ["list_users", "list_users_p2"]}, m)
 
-        from canvasapi.user import User
+        from canvasaio.user import User
 
         users = self.group.get_users()
         user_list = [user for user in users]
@@ -137,7 +137,7 @@ class TestGroup(unittest.TestCase):
     def test_remove_user(self, m):
         register_uris({"group": ["list_users", "list_users_p2", "remove_user"]}, m)
 
-        from canvasapi.user import User
+        from canvasaio.user import User
 
         user_by_id = self.group.remove_user(1)
         self.assertIsInstance(user_by_id, User)
@@ -444,7 +444,7 @@ class TestGroup(unittest.TestCase):
     def test_get_collaborations(self, m):
         register_uris({"group": ["get_collaborations"]}, m)
 
-        from canvasapi.collaboration import Collaboration
+        from canvasaio.collaboration import Collaboration
 
         collab_list = self.group.get_collaborations()
 
@@ -703,7 +703,7 @@ class TestGroupCategory(unittest.TestCase):
 
     # get_users()
     def test_get_users(self, m):
-        from canvasapi.user import User
+        from canvasaio.user import User
 
         register_uris({"group": ["category_list_users"]}, m)
 
@@ -715,8 +715,8 @@ class TestGroupCategory(unittest.TestCase):
 
     # assign_members()
     def test_assign_members(self, m):
-        from canvasapi.progress import Progress
-        from canvasapi.paginated_list import PaginatedList
+        from canvasaio.progress import Progress
+        from canvasaio.paginated_list import PaginatedList
 
         requires = {
             "group": ["category_assign_members_true", "category_assign_members_false"]

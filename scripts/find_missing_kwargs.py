@@ -5,7 +5,7 @@ import sys
 
 sys.path.append(os.path.join(sys.path[0], ".."))
 
-import canvasapi  # noqa
+import canvasaio  # noqa
 
 # Qualfied names of functions that are exempt from requiring kwargs
 WHITELIST = (
@@ -22,7 +22,7 @@ WHITELIST = (
 def find_missing_kwargs():
     missing_count = 0
 
-    for _, module in inspect.getmembers(canvasapi, inspect.ismodule):
+    for _, module in inspect.getmembers(canvasaio, inspect.ismodule):
         for class_name, theclass in inspect.getmembers(module, inspect.isclass):
             # Only process classes in this module
             if inspect.getmodule(theclass).__name__ != module.__name__:
