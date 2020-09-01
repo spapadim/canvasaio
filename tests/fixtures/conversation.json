@@ -1,6 +1,7 @@
 {
     "get_by_id": {
         "method": "GET",
+        "repeat": true,
         "endpoint": "conversations/1",
         "data": {
             "id": 1,
@@ -19,7 +20,7 @@
     }, 
     "get_conversations": {
         "method": "GET",
-        "endpoint": "conversations",
+        "endpoint": { "url_pattern" : "conversations(\\?per_page.+)?" },
         "data": [
             {
                 "id": 1,

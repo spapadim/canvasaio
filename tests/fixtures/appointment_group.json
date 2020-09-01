@@ -32,6 +32,7 @@
 	},
 	"get_appointment_group": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "appointment_groups/567",
 		"data": {
 			"id": 567,
@@ -42,7 +43,8 @@
 	},
 	"get_appointment_group_222": {
 		"method": "GET",
-		"endpoint": "appointment_groups/222",
+		"repeat": true,
+		"endpoint": { "url_pattern": "appointment_groups/222(\\?per.+)?$" },
 		"data": {
 			"id": 222,
 			"context_codes": ["course_765"],
@@ -52,7 +54,7 @@
 	},
 	"list_appointment_groups": {
 		"method": "GET",
-		"endpoint": "appointment_groups",
+		"endpoint": {"url_pattern": "appointment_groups(\\?.+)?" },
 		"data": [
 			{
 				"id": 123,
@@ -69,7 +71,8 @@
 	},
 	"list_user_participants": {
 		"method": "GET",
-		"endpoint": "appointment_groups/222/users",
+		"repeat": true,
+		"endpoint": { "url_pattern": "appointment_groups/222/users(\\?per.+)?$" },
 		"data": [
 			{
 				"id": 123,
@@ -84,7 +87,8 @@
 	},
 	"list_group_participants": {
 		"method": "GET",
-		"endpoint": "appointment_groups/222/groups",
+		"repeat": true,
+		"endpoint": { "url_pattern": "appointment_groups/222/groups(\\?per.+)?$" },
 		"data": [
 			{
 				"id": 123,

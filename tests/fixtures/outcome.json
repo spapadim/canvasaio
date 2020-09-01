@@ -133,6 +133,7 @@
     },
     "canvas_get_outcome": {
         "method": "GET",
+        "repeat": true,
         "endpoint": "outcomes/3",
         "data": {
             "id": 3,
@@ -155,6 +156,7 @@
     },
     "canvas_root_outcome_group": {
         "method": "GET",
+        "repeat": true,
         "endpoint": "global/root_outcome_group",
         "data": {
             "id": 1,
@@ -173,6 +175,7 @@
     },
     "canvas_get_outcome_group": {
         "method": "GET",
+        "repeat": true,
         "endpoint": "global/outcome_groups/1",
         "data": {
             "id": 1,

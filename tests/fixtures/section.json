@@ -1,6 +1,7 @@
 {
 	"get_by_id": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "sections/1",
 		"data":{
 			"id": 1,

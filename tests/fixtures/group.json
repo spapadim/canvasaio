@@ -12,6 +12,7 @@
 	},
 	"get_by_id": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "groups/1",
 		"data": {
 			"id": 1,
@@ -398,6 +399,7 @@
 	},
 	"get_category_by_id": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "group_categories/1",
 		"data": {
 			"id": 1,

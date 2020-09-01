@@ -1,12 +1,23 @@
 import json
 import os
+import re
+import inspect
+import unittest
 
-import requests_mock
+from typing import Optional
+
+from aioresponses import aioresponses
+from aiohttp import hdrs
 
 from tests import settings
 
+ALL_URLS = re.compile('.*')
 
-def register_uris(requirements, requests_mocker, base_url=None):
+def register_uris(
+    requirements: dict,
+    requests_mocker: aioresponses,
+    base_url: Optional[str] = None,
+) -> None:
     """
     Given a list of required fixtures and an requests_mocker object,
     register each fixture as a uri with the mocker.
@@ -35,20 +46,36 @@ def register_uris(requirements, requests_mocker, base_url=None):
                     "{} does not exist in {}.json".format(obj_name.__repr__(), fixture)
                 )
 
-            method = requests_mock.ANY if obj["method"] == "ANY" else obj["method"]
-            if obj["endpoint"] == "ANY":
-                url = requests_mock.ANY
+            methods = hdrs.METH_ALL if obj["method"] == "ANY" else { obj["method"] }
+            endpoint = obj["endpoint"]
+            if type(endpoint) == str: # Original CanvasAPI fixture spec
+                if endpoint == "ANY":
+                    url = ALL_URLS
+                else:
+                    url = base_url + obj["endpoint"]
+            elif type(endpoint) == dict:  # Extended spec, that allows specifying match type
+                if len(endpoint) != 1:
+                    raise TypeError("{} does not contain exactly one key-value pair".format(endpoint))
+                (match_type, match_spec), = endpoint.items()
+                if match_type == "url_pattern":
+                    url = re.compile(re.escape(base_url) + match_spec)
+                elif match_type == "url":
+                    url = base_url + match_spec  # Same as plain-string endpoint (above)
+                else:
+                    raise ValueError("Match type {} is unknown".format(match_type))
             else:
-                url = base_url + obj["endpoint"]
+                raise TypeError("{} is not a string or dict".format(endpoint))
 
             try:
-                requests_mocker.register_uri(
-                    method,
-                    url,
-                    json=obj.get("data"),
-                    status_code=obj.get("status_code", 200),
-                    headers=obj.get("headers", {}),
-                )
+                for method in methods:
+                    requests_mocker.add(
+                        url,
+                        method,
+                        payload=obj.get("data"),  # json
+                        status=obj.get("status_code", 200),
+                        headers=obj.get("headers", {}),
+                        repeat=obj.get("repeat", False),
+                    )
             except Exception as e:
                 print(e)
 
@@ -63,3 +90,40 @@ def cleanup_file(filename):
         os.remove(filename)
     except OSError:
         pass
+
+
+# TODO Make docstring coherent...!
+def aioresponse_mock(class_or_func=None, *, method_prefix: str = "test_"):
+    """
+    Decorator that wraps aioresponses(), so that it can also be applied to
+    a unittest.TestCase class, in addition to individual methods/functions.
+
+    :param class_or_func: The class or function/coroutine to decorate.
+
+    If decorating a class, then the class will be modified, so all methods
+    whose name starts with method_prefix are decorated with aioresponses().
+    """
+    def decorator(class_or_func):
+        if inspect.isclass(class_or_func):
+            if not issubclass(class_or_func, unittest.TestCase):
+                raise ValueError("Cannot decorate classes that aren't TestCases")
+            for attr_name in dir(class_or_func):
+                if not attr_name.startswith(method_prefix):
+                    continue
+                attr = getattr(class_or_func, attr_name)
+                if not inspect.isfunction(attr):
+                    continue
+                # Attr is a method whose name starts with method_prefix: 
+                #   decorate it, modifying class in-place
+                setattr(class_or_func, attr_name, aioresponses()(attr))
+            return class_or_func  # Return edited class
+        else:
+            # Pass thru
+            return aioresponses()(class_or_func)
+
+    if class_or_func is None:
+        # Decorating with arguments, needs to return the actual decorator
+        return decorator
+    else:
+        # Decorating without arguments
+        return decorator(class_or_func)

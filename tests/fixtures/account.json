@@ -152,6 +152,7 @@
 	},
 	"get_by_id": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "accounts/1",
 		"data": {
 			"id": 1,
@@ -406,7 +407,7 @@
 	},
 	"multiple": {
 		"method": "GET",
-		"endpoint": "accounts",
+		"endpoint": { "url_pattern": "accounts(\\?.+)?" },
 		"data": [
 			{
 				"id": 1,
@@ -433,7 +434,7 @@
 	},
 	"multiple_course": {
 		"method": "GET",
-		"endpoint": "course_accounts",
+		"endpoint": { "url_pattern": "course_accounts(\\?.+)?" },
 		"data": [
 			{
 				"id": 1,

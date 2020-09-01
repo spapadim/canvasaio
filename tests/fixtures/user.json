@@ -82,6 +82,7 @@
 	},
 	"course_nickname": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "users/self/course_nicknames/1",
 		"data": {
 			"course_id": 1,
@@ -92,6 +93,7 @@
 	},
 	"course_nickname_set": {
 		"method": "PUT",
+		"repeat": true,
 		"endpoint": "users/self/course_nicknames/1",
 		"data": {
 			"course_id": 1,
@@ -102,7 +104,7 @@
 	},
 	"course_nicknames": {
 		"method": "GET",
-		"endpoint": "users/self/course_nicknames",
+		"endpoint": "users/self/course_nicknames?per_page=100",
 		"data": [
 			{
 				"course_id": 16,
@@ -203,6 +205,7 @@
 	},
 	"get_by_id": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "users/1",
 		"data": {
 			"id": 1,
@@ -749,7 +752,7 @@
 	},
 	"search_recipients": {
 		"method": "GET",
-		"endpoint": "search/recipients",
+		"endpoint": {"url_pattern": "search/recipients(\\?.+)?"},
 		"data": [
   			{
   				"id": "group_1",

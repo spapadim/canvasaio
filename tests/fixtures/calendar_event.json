@@ -33,6 +33,7 @@
 	},
 	"get_calendar_event": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "calendar_events/567",
 		"data": {
 			"id": 567,
@@ -43,7 +44,7 @@
 	},
 	"list_calendar_events": {
 		"method": "GET",
-		"endpoint": "calendar_events",
+		"endpoint": { "url_pattern": "calendar_events(\\?.+)?" },
 		"data": [
 			{
 				"id": 123,
@@ -60,6 +61,7 @@
 	},
 	"reserve_time_slot": {
 		"method": "POST",
+		"repeat": true,
 		"endpoint": "calendar_events/567/reservations",
 		"data": {
 			"id": 567,

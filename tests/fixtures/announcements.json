@@ -1,7 +1,7 @@
 {
   "list_announcements": {
     "method": "GET",
-    "endpoint": "announcements",
+    "endpoint": { "url_pattern": "announcements(\\?.+)?" },
     "data": [{
         "id": 1,
         "title": "Announcment #1",

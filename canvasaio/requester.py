@@ -2,7 +2,9 @@ from datetime import datetime
 import logging
 from pprint import pformat
 
-import requests
+from typing import Optional
+
+import aiohttp
 
 from canvasaio.exceptions import (
     BadRequest,
@@ -36,10 +38,19 @@ class Requester(object):
         self.original_url = base_url
         self.base_url = base_url + "/api/v1/"
         self.access_token = access_token
-        self._session = requests.Session()
+        self.__session = None  # defer construction of ClientSession, since that needs to be done in async context
         self._cache = []
 
-    def _delete_request(self, url, headers, data=None, **kwargs):
+    @property
+    async def _session(self):
+        """
+        Deferred creation of aiohttp.ClientSession, since this needs to be done from async context
+        """
+        if self.__session == None:
+            self.__session = aiohttp.ClientSession()
+        return self.__session
+
+    async def _delete_request(self, url, headers, data=None, **kwargs):
         """
         Issue a DELETE request to the specified endpoint with the data provided.
 
@@ -50,9 +61,10 @@ class Requester(object):
         :param data: The data to send with this request.
         :type data: dict
         """
-        return self._session.delete(url, headers=headers, data=data)
+        session = await self._session
+        return await session.delete(url, headers=headers, data=data)
 
-    def _get_request(self, url, headers, params=None, **kwargs):
+    async def _get_request(self, url, headers, params=None, **kwargs):
         """
         Issue a GET request to the specified endpoint with the data provided.
 
@@ -63,9 +75,10 @@ class Requester(object):
         :param params: The parameters to send with this request.
         :type params: dict
         """
-        return self._session.get(url, headers=headers, params=params)
+        session = await self._session
+        return await session.get(url, headers=headers, params=params)
 
-    def _patch_request(self, url, headers, data=None, **kwargs):
+    async def _patch_request(self, url, headers, data=None, **kwargs):
         """
         Issue a PATCH request to the specified endpoint with the data provided.
 
@@ -76,9 +89,9 @@ class Requester(object):
         :param data: The data to send with this request.
         :type data: dict
         """
-        return self._session.patch(url, headers=headers, data=data)
+        return await self._session.patch(url, headers=headers, data=data)
 
-    def _post_request(self, url, headers, data=None, json=False):
+    async def _post_request(self, url, headers, data=None, json=False):
         """
         Issue a POST request to the specified endpoint with the data provided.
 
@@ -91,8 +104,10 @@ class Requester(object):
         :param json: Whether or not to send the data as json
         :type json: bool
         """
+        session = await self._session
+
         if json:
-            return self._session.post(url, headers=headers, json=dict(data))
+            return await session.post(url, headers=headers, json=dict(data))
 
         # Grab file from data.
         files = None
@@ -105,11 +120,27 @@ class Requester(object):
                 break
 
         # Remove file entry from data.
+        # XXX This contradicts type of "data" in docstring (can't hash a slice...)
+        #   So, apparently data must me a list of tuples
+        # XXX It appears that this functionality isn't actually used by the API...?
         data[:] = [tup for tup in data if tup[0] != "file"]
 
-        return self._session.post(url, headers=headers, data=data, files=files)
+        # TODO Check if this can be simplified
+        #    According to request lib docs, files must be a dict with file-like value type
+        #   If that is the case (i.e., passing string values would raise error), then we
+        #   can perhaps simply concatenate dict(data) + files as the aiohttp lib data parameter
+        #   Instead, we're playing safe (since I have no tide to investigate -- e.g., can a
+        #   file attachment and a form field share names?)
+        form_data = aiohttp.FormData()
+        for field, value in data:
+            form_data.add_field(field, value)
+        if files is not None:
+            for filename, value in files:
+                form_data.add_field(filename, value, filename=filename)
 
-    def _put_request(self, url, headers, data=None, **kwargs):
+        return await session.post(url, headers=headers, data=form_data)
+
+    async def _put_request(self, url, headers, data=None, **kwargs):
         """
         Issue a PUT request to the specified endpoint with the data provided.
 
@@ -120,19 +151,20 @@ class Requester(object):
         :param data: The data to send with this request.
         :type data: dict
         """
-        return self._session.put(url, headers=headers, data=data)
+        session = await self._session
+        return await session.put(url, headers=headers, data=data)
 
-    def request(
+    async def request(
         self,
-        method,
-        endpoint=None,
-        headers=None,
-        use_auth=True,
-        _url=None,
-        _kwargs=None,
-        json=False,
+        method: str,
+        endpoint: Optional[str] = None,
+        headers: Optional[dict] = None,
+        use_auth: bool = True,
+        _url: Optional[str] = None,
+        _kwargs: list = None,
+        json: bool = False,
         **kwargs
-    ):
+    ) -> aiohttp.ClientResponse:
         """
         Make a request to the Canvas API and return the response.
 
@@ -195,6 +227,8 @@ class Requester(object):
             req_method = self._put_request
         elif method == "PATCH":
             req_method = self._patch_request
+        else:
+            raise ValueError(f"Invalid HTTP request method: {method}")
 
         # Call the request method
         logger.info("Request: {method} {url}".format(method=method, url=full_url))
@@ -205,10 +239,10 @@ class Requester(object):
         if _kwargs:
             logger.debug("Data: {data}".format(data=pformat(_kwargs)))
 
-        response = req_method(full_url, headers, _kwargs, json=json)
+        response = await req_method(full_url, headers, _kwargs, json=json)
         logger.info(
             "Response: {method} {url} {status}".format(
-                method=method, url=full_url, status=response.status_code
+                method=method, url=full_url, status=response.status
             )
         )
         logger.debug(
@@ -218,9 +252,9 @@ class Requester(object):
         )
 
         try:
-            logger.debug("Data: {data}".format(data=pformat(response.json())))
+            logger.debug("Data: {data}".format(data=pformat(await response.json())))
         except ValueError:
-            logger.debug("Data: {data}".format(data=pformat(response.text)))
+            logger.debug("Data: {data}".format(data=pformat(await response.text())))
 
         # Add response to internal cache
         if len(self._cache) > 4:
@@ -229,25 +263,25 @@ class Requester(object):
         self._cache.insert(0, response)
 
         # Raise for status codes
-        if response.status_code == 400:
-            raise BadRequest(response.text)
-        elif response.status_code == 401:
+        if response.status == 400:
+            raise BadRequest(await response.text())
+        elif response.status == 401:
             if "WWW-Authenticate" in response.headers:
-                raise InvalidAccessToken(response.json())
+                raise InvalidAccessToken(await response.json())
             else:
-                raise Unauthorized(response.json())
-        elif response.status_code == 403:
-            raise Forbidden(response.text)
-        elif response.status_code == 404:
+                raise Unauthorized(await response.json())
+        elif response.status == 403:
+            raise Forbidden(await response.text())
+        elif response.status == 404:
             raise ResourceDoesNotExist("Not Found")
-        elif response.status_code == 409:
-            raise Conflict(response.text)
-        elif response.status_code == 422:
-            raise UnprocessableEntity(response.text)
-        elif response.status_code > 400:
+        elif response.status == 409:
+            raise Conflict(await response.text())
+        elif response.status == 422:
+            raise UnprocessableEntity(await response.text())
+        elif response.status > 400:
             # generic catch-all for error codes
             raise CanvasException(
-                "Encountered an error: status code {}".format(response.status_code)
+                "Encountered an error: status code {}".format(response.status)
             )
 
         return response

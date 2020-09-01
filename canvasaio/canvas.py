@@ -16,6 +16,10 @@ from canvasaio.user import User
 from canvasaio.util import combine_kwargs, get_institution_url, obj_or_id
 
 
+# XXX Should methods that return a PaginatedList also be async, even though they do not need to?
+#   If making them async doesn't break things like "async for obj in canvas.get_xxx_list(..):"
+#   then perhaps we should make them async as well, for API consistency
+
 class Canvas(object):
     """
     The main class to be instantiated to provide access to Canvas's API.
@@ -60,7 +64,7 @@ class Canvas(object):
 
         self.__requester = Requester(base_url, access_token)
 
-    def clear_course_nicknames(self, **kwargs):
+    async def clear_course_nicknames(self, **kwargs):
         """
         Remove all stored course nicknames.
 
@@ -72,14 +76,14 @@ class Canvas(object):
         :rtype: bool
         """
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "DELETE",
             "users/self/course_nicknames",
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json().get("message") == "OK"
+        return (await response.json()).get("message") == "OK"
 
-    def conversations_batch_update(self, conversation_ids, event, **kwargs):
+    async def conversations_batch_update(self, conversation_ids, event, **kwargs):
         """
 
         :calls: `PUT /api/v1/conversations \
@@ -120,15 +124,15 @@ class Canvas(object):
         kwargs["conversation_ids"] = conversation_ids
         kwargs["event"] = event
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "PUT",
             "conversations",
             _kwargs=combine_kwargs(**kwargs),
         )
-        return_progress = Progress(self.__requester, response.json())
+        return_progress = Progress(self.__requester, await response.json())
         return return_progress
 
-    def conversations_get_running_batches(self, **kwargs):
+    async def conversations_get_running_batches(self, **kwargs):
         """
         Returns any currently running conversation batches for the current user.
         Conversation batches are created when a bulk private message is sent
@@ -141,13 +145,13 @@ class Canvas(object):
         :rtype: `dict`
         """
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET", "conversations/batches", _kwargs=combine_kwargs(**kwargs)
         )
 
-        return response.json()
+        return await response.json()
 
-    def conversations_mark_all_as_read(self, **kwargs):
+    async def conversations_mark_all_as_read(self, **kwargs):
         """
         Mark all conversations as read.
 
@@ -156,12 +160,12 @@ class Canvas(object):
 
         :rtype: `bool`
         """
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "POST", "conversations/mark_all_as_read", _kwargs=combine_kwargs(**kwargs)
         )
-        return response.json() == {}
+        return (await response.json()) == {}
 
-    def conversations_unread_count(self, **kwargs):
+    async def conversations_unread_count(self, **kwargs):
         """
         Get the number of unread conversations for the current user
 
@@ -171,13 +175,13 @@ class Canvas(object):
         :returns: simple object with unread_count, example: {'unread_count': '7'}
         :rtype: `dict`
         """
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET", "conversations/unread_count", _kwargs=combine_kwargs(**kwargs)
         )
 
-        return response.json()
+        return await response.json()
 
-    def create_account(self, **kwargs):
+    async def create_account(self, **kwargs):
         """
         Create a new root account.
 
@@ -186,12 +190,12 @@ class Canvas(object):
 
         :rtype: :class:`canvasaio.account.Account`
         """
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "POST", "accounts", _kwargs=combine_kwargs(**kwargs)
         )
-        return Account(self.__requester, response.json())
+        return Account(self.__requester, await response.json())
 
-    def create_appointment_group(self, appointment_group, **kwargs):
+    async def create_appointment_group(self, appointment_group, **kwargs):
         """
         Create a new Appointment Group.
 
@@ -224,13 +228,13 @@ class Canvas(object):
         elif isinstance(appointment_group, dict) and "title" not in appointment_group:
             raise RequiredFieldMissing("Dictionary with key 'title' is missing.")
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "POST", "appointment_groups", _kwargs=combine_kwargs(**kwargs)
         )
 
-        return AppointmentGroup(self.__requester, response.json())
+        return AppointmentGroup(self.__requester, await response.json())
 
-    def create_calendar_event(self, calendar_event, **kwargs):
+    async def create_calendar_event(self, calendar_event, **kwargs):
         """
         Create a new Calendar Event.
 
@@ -250,13 +254,13 @@ class Canvas(object):
                 "Dictionary with key 'context_codes' is required."
             )
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "POST", "calendar_events", _kwargs=combine_kwargs(**kwargs)
         )
 
-        return CalendarEvent(self.__requester, response.json())
+        return CalendarEvent(self.__requester, await response.json())
 
-    def create_conversation(self, recipients, body, **kwargs):
+    async def create_conversation(self, recipients, body, **kwargs):
         """
         Create a new Conversation.
 
@@ -277,12 +281,12 @@ class Canvas(object):
         kwargs["recipients"] = recipients
         kwargs["body"] = body
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "POST", "conversations", _kwargs=combine_kwargs(**kwargs)
         )
-        return [Conversation(self.__requester, convo) for convo in response.json()]
+        return [Conversation(self.__requester, convo) for convo in await response.json()]
 
-    def create_group(self, **kwargs):
+    async def create_group(self, **kwargs):
         """
         Create a group
 
@@ -291,12 +295,12 @@ class Canvas(object):
 
         :rtype: :class:`canvasaio.group.Group`
         """
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "POST", "groups", _kwargs=combine_kwargs(**kwargs)
         )
-        return Group(self.__requester, response.json())
+        return Group(self.__requester, await response.json())
 
-    def create_planner_note(self, **kwargs):
+    async def create_planner_note(self, **kwargs):
         """
         Create a planner note for the current user
 
@@ -307,12 +311,12 @@ class Canvas(object):
         """
         from canvasaio.planner import PlannerNote
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "POST", "planner_notes", _kwargs=combine_kwargs(**kwargs)
         )
-        return PlannerNote(self.__requester, response.json())
+        return PlannerNote(self.__requester, await response.json())
 
-    def create_planner_override(self, plannable_type, plannable_id, **kwargs):
+    async def create_planner_override(self, plannable_type, plannable_id, **kwargs):
         """
         Create a planner override for the current user
 
@@ -338,12 +342,12 @@ class Canvas(object):
         else:
             raise RequiredFieldMissing("plannable_id is required as an int.")
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "POST", "planner/overrides", _kwargs=combine_kwargs(**kwargs)
         )
-        return PlannerOverride(self.__requester, response.json())
+        return PlannerOverride(self.__requester, await response.json())
 
-    def create_poll(self, poll, **kwargs):
+    async def create_poll(self, poll, **kwargs):
         """
         Create a new poll for the current user.
 
@@ -367,12 +371,12 @@ class Canvas(object):
                 "Dictionary with key 'question' and is required."
             )
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "POST", "polls", _kwargs=combine_kwargs(**kwargs)
         )
-        return Poll(self.__requester, response.json()["polls"][0])
+        return Poll(self.__requester, (await response.json())["polls"][0])
 
-    def get_account(self, account, use_sis_id=False, **kwargs):
+    async def get_account(self, account, use_sis_id=False, **kwargs):
         """
         Retrieve information on an individual account.
 
@@ -394,10 +398,10 @@ class Canvas(object):
             account_id = obj_or_id(account, "account", (Account,))
             uri_str = "accounts/{}"
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET", uri_str.format(account_id), _kwargs=combine_kwargs(**kwargs)
         )
-        return Account(self.__requester, response.json())
+        return Account(self.__requester, await response.json())
 
     def get_accounts(self, **kwargs):
         """
@@ -421,7 +425,7 @@ class Canvas(object):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_activity_stream_summary(self, **kwargs):
+    async def get_activity_stream_summary(self, **kwargs):
         """
         Return a summary of the current user's global activity stream.
 
@@ -430,12 +434,12 @@ class Canvas(object):
 
         :rtype: dict
         """
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET",
             "users/self/activity_stream/summary",
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()
+        return await response.json()
 
     def get_announcements(self, **kwargs):
         """
@@ -457,7 +461,7 @@ class Canvas(object):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_appointment_group(self, appointment_group, **kwargs):
+    async def get_appointment_group(self, appointment_group, **kwargs):
         """
         Return single Appointment Group by id
 
@@ -475,12 +479,12 @@ class Canvas(object):
             appointment_group, "appointment_group", (AppointmentGroup,)
         )
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET",
             "appointment_groups/{}".format(appointment_group_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return AppointmentGroup(self.__requester, response.json())
+        return AppointmentGroup(self.__requester, await response.json())
 
     def get_appointment_groups(self, **kwargs):
         """
@@ -502,7 +506,7 @@ class Canvas(object):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_brand_variables(self, **kwargs):
+    async def get_brand_variables(self, **kwargs):
         """
         Get account brand variables
 
@@ -512,12 +516,12 @@ class Canvas(object):
         :returns: JSON with brand variables for the account.
         :rtype: dict
         """
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET", "brand_variables", _kwargs=combine_kwargs(**kwargs)
         )
-        return response.json()
+        return await response.json()
 
-    def get_calendar_event(self, calendar_event, **kwargs):
+    async def get_calendar_event(self, calendar_event, **kwargs):
         """
         Return single Calendar Event by id
 
@@ -535,12 +539,12 @@ class Canvas(object):
             calendar_event, "calendar_event", (CalendarEvent,)
         )
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET",
             "calendar_events/{}".format(calendar_event_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return CalendarEvent(self.__requester, response.json())
+        return CalendarEvent(self.__requester, await response.json())
 
     def get_calendar_events(self, **kwargs):
         """
@@ -588,7 +592,7 @@ class Canvas(object):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_conversation(self, conversation, **kwargs):
+    async def get_conversation(self, conversation, **kwargs):
         """
         Return single Conversation
 
@@ -604,12 +608,12 @@ class Canvas(object):
 
         conversation_id = obj_or_id(conversation, "conversation", (Conversation,))
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET",
             "conversations/{}".format(conversation_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Conversation(self.__requester, response.json())
+        return Conversation(self.__requester, await response.json())
 
     def get_conversations(self, **kwargs):
         """
@@ -631,7 +635,7 @@ class Canvas(object):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_course(self, course, use_sis_id=False, **kwargs):
+    async def get_course(self, course, use_sis_id=False, **kwargs):
         """
         Retrieve a course by its ID.
 
@@ -653,10 +657,10 @@ class Canvas(object):
             course_id = obj_or_id(course, "course", (Course,))
             uri_str = "courses/{}"
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET", uri_str.format(course_id), _kwargs=combine_kwargs(**kwargs)
         )
-        return Course(self.__requester, response.json())
+        return Course(self.__requester, await response.json())
 
     def get_course_accounts(self, **kwargs):
         """
@@ -680,7 +684,7 @@ class Canvas(object):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_course_nickname(self, course, **kwargs):
+    async def get_course_nickname(self, course, **kwargs):
         """
         Return the nickname for the given course.
 
@@ -696,12 +700,12 @@ class Canvas(object):
 
         course_id = obj_or_id(course, "course", (Course,))
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET",
             "users/self/course_nicknames/{}".format(course_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return CourseNickname(self.__requester, response.json())
+        return CourseNickname(self.__requester, await response.json())
 
     def get_course_nicknames(self, **kwargs):
         """
@@ -757,10 +761,10 @@ class Canvas(object):
             "GET",
             "epub_exports",
             _root="courses",
-            kwargs=combine_kwargs(**kwargs),
+            _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_file(self, file, **kwargs):
+    async def get_file(self, file, **kwargs):
         """
         Return the standard attachment json object for a file.
 
@@ -774,12 +778,12 @@ class Canvas(object):
         """
         file_id = obj_or_id(file, "file", (File,))
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET", "files/{}".format(file_id), _kwargs=combine_kwargs(**kwargs)
         )
-        return File(self.__requester, response.json())
+        return File(self.__requester, await response.json())
 
-    def get_folder(self, folder, **kwargs):
+    async def get_folder(self, folder, **kwargs):
         """
         Return the details for a folder
 
@@ -793,12 +797,12 @@ class Canvas(object):
         """
         folder_id = obj_or_id(folder, "folder", (Folder,))
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET", "folders/{}".format(folder_id), _kwargs=combine_kwargs(**kwargs)
         )
-        return Folder(self.__requester, response.json())
+        return Folder(self.__requester, await response.json())
 
-    def get_group(self, group, use_sis_id=False, **kwargs):
+    async def get_group(self, group, use_sis_id=False, **kwargs):
         """
         Return the data for a single group. If the caller does not
         have permission to view the group a 401 will be returned.
@@ -823,12 +827,12 @@ class Canvas(object):
             group_id = obj_or_id(group, "group", (Group,))
             uri_str = "groups/{}"
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET", uri_str.format(group_id), _kwargs=combine_kwargs(**kwargs)
         )
-        return Group(self.__requester, response.json())
+        return Group(self.__requester, await response.json())
 
-    def get_group_category(self, category, **kwargs):
+    async def get_group_category(self, category, **kwargs):
         """
         Get a single group category.
 
@@ -842,12 +846,12 @@ class Canvas(object):
         """
         category_id = obj_or_id(category, "category", (GroupCategory,))
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET",
             "group_categories/{}".format(category_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return GroupCategory(self.__requester, response.json())
+        return GroupCategory(self.__requester, await response.json())
 
     def get_group_participants(self, appointment_group, **kwargs):
         """
@@ -876,7 +880,7 @@ class Canvas(object):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_outcome(self, outcome, **kwargs):
+    async def get_outcome(self, outcome, **kwargs):
         """
         Returns the details of the outcome with the given id.
 
@@ -892,12 +896,12 @@ class Canvas(object):
         from canvasaio.outcome import Outcome
 
         outcome_id = obj_or_id(outcome, "outcome", (Outcome,))
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET", "outcomes/{}".format(outcome_id), _kwargs=combine_kwargs(**kwargs)
         )
-        return Outcome(self.__requester, response.json())
+        return Outcome(self.__requester, await response.json())
 
-    def get_outcome_group(self, group, **kwargs):
+    async def get_outcome_group(self, group, **kwargs):
         """
         Returns the details of the Outcome Group with the given id.
 
@@ -914,15 +918,15 @@ class Canvas(object):
 
         outcome_group_id = obj_or_id(group, "group", (OutcomeGroup,))
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET",
             "global/outcome_groups/{}".format(outcome_group_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return OutcomeGroup(self.__requester, response.json())
+        return OutcomeGroup(self.__requester, await response.json())
 
-    def get_planner_note(self, planner_note, **kwargs):
+    async def get_planner_note(self, planner_note, **kwargs):
         """
         Retrieve a planner note for the current user
 
@@ -943,13 +947,13 @@ class Canvas(object):
                 "planner_note is required as an object or as an int."
             )
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET",
             "planner_notes/{}".format(planner_note_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return PlannerNote(self.__requester, response.json())
+        return PlannerNote(self.__requester, await response.json())
 
     def get_planner_notes(self, **kwargs):
         """
@@ -971,7 +975,7 @@ class Canvas(object):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_planner_override(self, planner_override, **kwargs):
+    async def get_planner_override(self, planner_override, **kwargs):
         """
         Retrieve a planner override for the current user
 
@@ -996,13 +1000,13 @@ class Canvas(object):
                 "planner_override is required as an object or as an int."
             )
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET",
             "planner/overrides/{}".format(planner_override_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return PlannerOverride(self.__requester, response.json())
+        return PlannerOverride(self.__requester, await response.json())
 
     def get_planner_overrides(self, **kwargs):
         """
@@ -1024,7 +1028,7 @@ class Canvas(object):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_poll(self, poll, **kwargs):
+    async def get_poll(self, poll, **kwargs):
         """
         Get a single poll, based on the poll id.
 
@@ -1039,10 +1043,10 @@ class Canvas(object):
 
         poll_id = obj_or_id(poll, "poll", (Poll,))
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET", "polls/{}".format(poll_id), _kwargs=combine_kwargs(**kwargs)
         )
-        return Poll(self.__requester, response.json()["polls"][0])
+        return Poll(self.__requester, (await response.json())["polls"][0])
 
     def get_polls(self, **kwargs):
         """
@@ -1065,7 +1069,7 @@ class Canvas(object):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_progress(self, progress, **kwargs):
+    async def get_progress(self, progress, **kwargs):
         """
         Get a specific progress.
 
@@ -1082,12 +1086,12 @@ class Canvas(object):
 
         progress_id = obj_or_id(progress, "progress", (Progress,))
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET", "progress/{}".format(progress_id), _kwargs=combine_kwargs(**kwargs)
         )
-        return Progress(self.__requester, response.json())
+        return Progress(self.__requester, await response.json())
 
-    def get_root_outcome_group(self, **kwargs):
+    async def get_root_outcome_group(self, **kwargs):
         """
         Redirect to root outcome group for context
 
@@ -1099,12 +1103,12 @@ class Canvas(object):
         """
         from canvasaio.outcome import OutcomeGroup
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET", "global/root_outcome_group", _kwargs=combine_kwargs(**kwargs)
         )
-        return OutcomeGroup(self.__requester, response.json())
+        return OutcomeGroup(self.__requester, await response.json())
 
-    def get_section(self, section, use_sis_id=False, **kwargs):
+    async def get_section(self, section, use_sis_id=False, **kwargs):
         """
         Get details about a specific section.
 
@@ -1126,12 +1130,12 @@ class Canvas(object):
             section_id = obj_or_id(section, "section", (Section,))
             uri_str = "sections/{}"
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET", uri_str.format(section_id), _kwargs=combine_kwargs(**kwargs)
         )
-        return Section(self.__requester, response.json())
+        return Section(self.__requester, await response.json())
 
-    def get_todo_items(self, **kwargs):
+    async def get_todo_items(self, **kwargs):
         """
         Return the current user's list of todo items, as seen on the user dashboard.
 
@@ -1140,12 +1144,12 @@ class Canvas(object):
 
         :rtype: dict
         """
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET", "users/self/todo", _kwargs=combine_kwargs(**kwargs)
         )
-        return response.json()
+        return await response.json()
 
-    def get_upcoming_events(self, **kwargs):
+    async def get_upcoming_events(self, **kwargs):
         """
         Return the current user's upcoming events, i.e. the same things shown
         in the dashboard 'Coming Up' sidebar.
@@ -1155,12 +1159,12 @@ class Canvas(object):
 
         :rtype: dict
         """
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET", "users/self/upcoming_events", _kwargs=combine_kwargs(**kwargs)
         )
-        return response.json()
+        return await response.json()
 
-    def get_user(self, user, id_type=None, **kwargs):
+    async def get_user(self, user, id_type=None, **kwargs):
         """
         Retrieve a user by their ID. `id_type` denotes which endpoint to try as there are
         several different IDs that can pull the same user record from Canvas.
@@ -1187,10 +1191,10 @@ class Canvas(object):
             user_id = obj_or_id(user, "user", (User,))
             uri = "users/{}".format(user_id)
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET", uri, _kwargs=combine_kwargs(**kwargs)
         )
-        return User(self.__requester, response.json())
+        return User(self.__requester, await response.json())
 
     def get_user_participants(self, appointment_group, **kwargs):
         """
@@ -1219,7 +1223,7 @@ class Canvas(object):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def graphql(self, query, variables=None, **kwargs):
+    async def graphql(self, query, variables=None, **kwargs):
         """
         Makes a GraphQL formatted request to Canvas
 
@@ -1233,7 +1237,7 @@ class Canvas(object):
 
         :rtype: dict
         """
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "POST",
             "graphql",
             headers={"Content-Type": "application/json"},
@@ -1244,9 +1248,9 @@ class Canvas(object):
             json=True,
         )
 
-        return response.json()
+        return await response.json()
 
-    def reserve_time_slot(self, calendar_event, participant_id=None, **kwargs):
+    async def reserve_time_slot(self, calendar_event, participant_id=None, **kwargs):
         """
         Return single Calendar Event by id
 
@@ -1274,12 +1278,12 @@ class Canvas(object):
         else:
             uri = "calendar_events/{}/reservations".format(calendar_event_id)
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "POST", uri, _kwargs=combine_kwargs(**kwargs)
         )
-        return CalendarEvent(self.__requester, response.json())
+        return CalendarEvent(self.__requester, await response.json())
 
-    def search_accounts(self, **kwargs):
+    async def search_accounts(self, **kwargs):
         """
         Return a list of up to 5 matching account domains. Partial matches on
         name and domain are supported.
@@ -1289,12 +1293,12 @@ class Canvas(object):
 
         :rtype: dict
         """
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET", "accounts/search", _kwargs=combine_kwargs(**kwargs)
         )
-        return response.json()
+        return await response.json()
 
-    def search_all_courses(self, **kwargs):
+    async def search_all_courses(self, **kwargs):
         """
         List all the courses visible in the public index.
         Returns a list of dicts, each containing a single course.
@@ -1304,12 +1308,12 @@ class Canvas(object):
 
         :rtype: `list`
         """
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET", "search/all_courses", _kwargs=combine_kwargs(**kwargs)
         )
-        return response.json()
+        return await response.json()
 
-    def search_recipients(self, **kwargs):
+    async def search_recipients(self, **kwargs):
         """
         Find valid recipients (users, courses and groups) that the current user
         can send messages to.
@@ -1323,12 +1327,12 @@ class Canvas(object):
         if "search" not in kwargs:
             kwargs["search"] = " "
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "GET", "search/recipients", _kwargs=combine_kwargs(**kwargs)
         )
-        return response.json()
+        return await response.json()
 
-    def set_course_nickname(self, course, nickname, **kwargs):
+    async def set_course_nickname(self, course, nickname, **kwargs):
         """
         Set a nickname for the given course. This will replace the
         course's name in the output of subsequent API calls, as
@@ -1350,9 +1354,9 @@ class Canvas(object):
 
         kwargs["nickname"] = nickname
 
-        response = self.__requester.request(
+        response = await self.__requester.request(
             "PUT",
             "users/self/course_nicknames/{}".format(course_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return CourseNickname(self.__requester, response.json())
+        return CourseNickname(self.__requester, await response.json())

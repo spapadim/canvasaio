@@ -12,6 +12,7 @@
     },
     "get_by_id": {
         "method": "GET",
+        "repeat": true,
         "endpoint": "files/1",
         "data": {
             "id": 1,
