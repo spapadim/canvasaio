@@ -49,6 +49,7 @@
 	},
 	"get_by_id_account": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "accounts/1/external_tools/1",
 		"data": {
 			"id": 1,

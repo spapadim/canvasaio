@@ -50,6 +50,10 @@ class Requester(object):
             self.__session = aiohttp.ClientSession()
         return self.__session
 
+    async def close(self):
+        if self.__session != None:
+            await self.__session.close()
+
     async def _delete_request(self, url, headers, data=None, **kwargs):
         """
         Issue a DELETE request to the specified endpoint with the data provided.
@@ -135,7 +139,7 @@ class Requester(object):
         for field, value in data:
             form_data.add_field(field, value)
         if files is not None:
-            for filename, value in files:
+            for filename, value in files.items():
                 form_data.add_field(filename, value, filename=filename)
 
         return await session.post(url, headers=headers, data=form_data)
@@ -239,6 +243,7 @@ class Requester(object):
         if _kwargs:
             logger.debug("Data: {data}".format(data=pformat(_kwargs)))
 
+        #print(f"DBG {method} {full_url}\nDBG _kwargs: {_kwargs!r}\nDBG HEADERS: {headers!r}\nDBG JSON: {json!r}")
         response = await req_method(full_url, headers, _kwargs, json=json)
         logger.info(
             "Response: {method} {url} {status}".format(

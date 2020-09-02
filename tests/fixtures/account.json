@@ -208,7 +208,10 @@
 	},
 	"get_courses": {
 		"method": "GET",
-		"endpoint": "accounts/1/courses",
+		"endpoint": {
+			"url": "accounts/1/courses",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -265,7 +268,10 @@
 	},
 	"get_external_tools": {
 		"method": "GET",
-		"endpoint": "accounts/1/external_tools",
+		"endpoint": {
+			"url": "accounts/1/external_tools",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -327,7 +333,10 @@
 	},
 	"get_enrollment_terms": {
 		"method": "GET",
-		"endpoint": "accounts/1/terms",
+		"endpoint": {
+			"url": "accounts/1/terms",
+			"ignore_query": true
+		},
 		"data": {
 			"enrollment_terms": [
 			{
@@ -357,7 +366,10 @@
 	},
 	"get_grading_periods": {
         "method": "GET",
-        "endpoint": "accounts/1/grading_periods",
+        "endpoint": {
+			"url": "accounts/1/grading_periods",
+			"ignore_query": true
+		},
         "data": {
             "grading_periods": [
                 {
@@ -374,7 +386,10 @@
     },
 	"get_groups_context": {
 		"method": "GET",
-		"endpoint": "accounts/1/groups",
+		"endpoint": {
+			"url": "accounts/1/groups",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -585,7 +600,10 @@
 	},
 	"reports": {
 		"method": "GET",
-		"endpoint": "accounts/1/reports",
+		"endpoint": {
+			"url": "accounts/1/reports",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -616,7 +634,10 @@
 	},
 	"report_index": {
 		"method": "GET",
-		"endpoint": "accounts/1/reports/sis_export_csv",
+		"endpoint": {
+			"url": "accounts/1/reports/sis_export_csv",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -649,7 +670,10 @@
 	},
 	"subaccounts": {
 		"method": "GET",
-		"endpoint": "accounts/1/sub_accounts",
+		"endpoint": {
+			"url": "accounts/1/sub_accounts",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 101,
@@ -682,6 +706,7 @@
 	},
 	"get_role": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "accounts/1/roles/2",
 		"data": {
 			"id": 2,
@@ -692,7 +717,10 @@
 	},
 	"users": {
 		"method": "GET",
-		"endpoint": "accounts/1/users",
+		"endpoint": {
+			"url": "accounts/1/users",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -725,7 +753,10 @@
 	},
 	"user_notifs": {
 		"method": "GET",
-		"endpoint": "accounts/1/users/1/account_notifications",
+		"endpoint": {
+			"url": "accounts/1/users/1/account_notifications",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"subject": "Subject 1",
@@ -806,7 +837,10 @@
 	},
 	"get_group_categories": {
 		"method": "GET",
-		"endpoint": "accounts/1/group_categories",
+		"endpoint": {
+			"url": "accounts/1/group_categories",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 2,
@@ -835,7 +869,10 @@
 	},
 	"get_roles": {
 		"method": "GET",
-		"endpoint": "accounts/1/roles",
+		"endpoint": {
+			"url": "accounts/1/roles",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -882,6 +919,7 @@
 	},
 	"deactivate_role": {
 		"method": "DELETE",
+		"repeat": true,
 		"endpoint": "accounts/1/roles/2",
 		"data": {
 			"id": 2,
@@ -892,6 +930,7 @@
 	},
 	"activate_role": {
 		"method": "POST",
+		"repeat": true,
 		"endpoint": "accounts/1/roles/2/activate",
 		"data": {
 			"id": 2,
@@ -902,6 +941,7 @@
 	},
 	"update_role": {
 		"method": "PUT",
+		"repeat": true,
 		"endpoint": "accounts/1/roles/2",
 		"data": {
 			"id": 2,
@@ -912,7 +952,10 @@
 	},
 	"get_user_logins": {
 		"method": "GET",
-		"endpoint": "accounts/1/logins",
+		"endpoint": {
+			"url": "accounts/1/logins",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"account_id": 1,
@@ -1148,7 +1191,10 @@
 	},
 	"list_authentication_providers": {
 		"method": "GET",
-		"endpoint": "accounts/1/authentication_providers",
+		"endpoint": {
+			"url": "accounts/1/authentication_providers",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -1195,6 +1241,7 @@
 	},
 	"get_authentication_providers": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "accounts/1/authentication_providers/1",
 		"data": {
 			"id": 1,
@@ -1237,7 +1284,10 @@
 	},
 	"get_grading_standards": {
 		"method": "GET",
-		"endpoint": "accounts/1/grading_standards",
+		"endpoint": {
+			"url": "accounts/1/grading_standards",
+			"ignore_query": true
+		},
 		"data": [
 			{
 			"title": "Grading Standard 1",
@@ -1264,7 +1314,8 @@
 		"status_code": 200
 	},
 	"delete_grading_period": {
-        "method": "DELETE",
+		"method": "DELETE",
+		"repeat": true,
         "endpoint": "accounts/1/grading_periods/1",
         "data": {
             "delete": true
@@ -1289,7 +1340,10 @@
 	},
 	"get_rubric_multiple": {
 		"method": "GET",
-		"endpoint": "accounts/1/rubrics",
+		"endpoint": {
+			"url": "accounts/1/rubrics",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -1334,7 +1388,10 @@
 	},
 	"get_scopes": {
 	"method": "GET",
-	"endpoint": "accounts/1/scopes",
+	"endpoint": {
+		"url": "accounts/1/scopes",
+		"ignore_query": true
+	},
 	"data": [
 		{
         	"controller": "users",
@@ -1380,7 +1437,10 @@
 	},
 	"get_content_migration_multiple": {
 		"method": "GET",
-		"endpoint": "accounts/1/content_migrations",
+		"endpoint": { 
+			"url": "accounts/1/content_migrations",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -1397,7 +1457,10 @@
 	},
 	"get_migration_systems_multiple": {
 		"method": "GET",
-		"endpoint": "accounts/1/content_migrations/migrators",
+		"endpoint": {
+			"url": "accounts/1/content_migrations/migrators",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"type": "dummy_importer",
@@ -1414,7 +1477,10 @@
 	},
 	"get_admins": {
 		"method": "GET",
-		"endpoint": "accounts/1/admins",
+		"endpoint": {
+			"url": "accounts/1/admins",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 7,
@@ -1572,7 +1638,10 @@
 	},
 	"get_sis_imports": {
 		"method": "GET",
-		"endpoint": "accounts/1/sis_imports",
+		"endpoint": {
+			"url": "accounts/1/sis_imports",
+			"ignore_query": true
+		},
 		"data": {
 			"sis_imports": [
 				{
@@ -1619,7 +1688,10 @@
 	},
 	"get_sis_imports_running": {
 		"method": "GET",
-		"endpoint": "accounts/1/sis_imports/importing",
+		"endpoint": {
+			"url": "accounts/1/sis_imports/importing",
+			"ignore_query": true
+		},
 		"data": {
 			"sis_imports": [
 				{
@@ -1690,7 +1762,10 @@
 	},
 	"get_features": {
 		"method": "GET",
-		"endpoint": "accounts/1/features",
+		"endpoint": {
+			"url": "accounts/1/features",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"name": "epub_export",
@@ -1707,7 +1782,10 @@
 	},
 	"get_enabled_features": {
 		"method": "GET",
-		"endpoint": "accounts/1/features/enabled",
+		"endpoint": {
+			"url": "accounts/1/features/enabled", 
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"name": "feature_one",

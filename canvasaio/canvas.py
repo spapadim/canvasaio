@@ -1,5 +1,8 @@
 import warnings
 
+from typing import Optional, Type
+from types import TracebackType
+
 from canvasaio.account import Account
 from canvasaio.comm_message import CommMessage
 from canvasaio.course import Course
@@ -63,6 +66,18 @@ class Canvas(object):
         base_url = get_institution_url(base_url)
 
         self.__requester = Requester(base_url, access_token)
+
+    async def close(self):
+        await self.__requester.close()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self,
+                        exc_type: Optional[Type[BaseException]],
+                        exc: Optional[BaseException],
+                        tb: Optional[TracebackType]) -> None:
+        await self.close()
 
     async def clear_course_nicknames(self, **kwargs):
         """

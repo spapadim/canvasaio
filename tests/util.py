@@ -52,17 +52,19 @@ def register_uris(
                 if endpoint == "ANY":
                     url = ALL_URLS
                 else:
-                    url = base_url + obj["endpoint"]
+                    url = base_url + endpoint
             elif type(endpoint) == dict:  # Extended spec, that allows specifying match type
-                if len(endpoint) != 1:
+                if not (1 <= len(endpoint) <= 2):
                     raise TypeError("{} does not contain exactly one key-value pair".format(endpoint))
-                (match_type, match_spec), = endpoint.items()
-                if match_type == "url_pattern":
-                    url = re.compile(re.escape(base_url) + match_spec)
-                elif match_type == "url":
-                    url = base_url + match_spec  # Same as plain-string endpoint (above)
+                if "url_pattern" in endpoint:
+                    url = re.compile(re.escape(base_url) + endpoint["url_pattern"])
+                elif "url" in endpoint:
+                    if endpoint.get("ignore_query", False):
+                        url = re.compile(re.escape(base_url) + re.escape(endpoint["url"]) + r'(\?.+)?$')
+                    else:
+                        url = base_url + endpoint["url"]  # Same as plain-string endpoint (above)
                 else:
-                    raise ValueError("Match type {} is unknown".format(match_type))
+                    raise ValueError("Endpoint spec has neither url nor url_pattern")
             else:
                 raise TypeError("{} is not a string or dict".format(endpoint))
 

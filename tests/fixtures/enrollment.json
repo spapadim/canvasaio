@@ -13,6 +13,7 @@
 	},
 	"get_by_id": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "accounts/1/enrollments/1",
 		"data": {
 			"id": 1,

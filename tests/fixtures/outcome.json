@@ -19,6 +19,7 @@
     },
     "account_get_outcome_group": {
         "method": "GET",
+        "repeat": true,
         "endpoint": "accounts/1/outcome_groups/1",
         "data": {
             "id": 1,
@@ -37,7 +38,11 @@
     },
     "account_outcome_groups_in_context": {
         "method": "GET",
-        "endpoint": "accounts/1/outcome_groups",
+        "repeat": true,
+        "endpoint": {
+            "url": "accounts/1/outcome_groups",
+            "ignore_query": true
+        },
         "data":[
             {
                 "id": 1,
@@ -75,7 +80,10 @@
     },
     "account_outcome_links_in_context": {
         "method": "GET",
-        "endpoint": "accounts/1/outcome_group_links",
+        "endpoint": {
+            "url": "accounts/1/outcome_group_links",
+            "ignore_query": true
+        },
         "data": [
             {
                 "context_id": 1,

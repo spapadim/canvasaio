@@ -14,7 +14,7 @@ class Account(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.name, self.id)
 
-    def abort_sis_imports_pending(self, **kwargs):
+    async def abort_sis_imports_pending(self, **kwargs):
         """
         Aborts all pending (created, but not processed or processing)
         SIS imports for the current account.
@@ -25,15 +25,15 @@ class Account(CanvasObject):
         :returns: True if the API responds with aborted=True, False otherwise.
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "accounts/{}/sis_imports/abort_all_pending".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json().get("aborted", False)
+        return (await response.json()).get("aborted", False)
 
-    def activate_role(self, role, **kwargs):
+    async def activate_role(self, role, **kwargs):
         """
         Reactivate an inactive role.
 
@@ -46,14 +46,14 @@ class Account(CanvasObject):
         """
         role_id = obj_or_id(role, "role", (Role,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "accounts/{}/roles/{}/activate".format(self.id, role_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Role(self._requester, response.json())
+        return Role(self._requester, await response.json())
 
-    def add_authentication_providers(self, **kwargs):
+    async def add_authentication_providers(self, **kwargs):
         """
         Add external authentication providers for the account
 
@@ -64,17 +64,17 @@ class Account(CanvasObject):
         """
         from canvasaio.authentication_provider import AuthenticationProvider
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "accounts/{}/authentication_providers".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        authentication_providers_json = response.json()
+        authentication_providers_json = await response.json()
         authentication_providers_json.update({"account_id": self.id})
 
         return AuthenticationProvider(self._requester, authentication_providers_json)
 
-    def add_grading_standards(self, title, grading_scheme_entry, **kwargs):
+    async def add_grading_standards(self, title, grading_scheme_entry, **kwargs):
         """
         Create a new grading standard for the account.
 
@@ -99,16 +99,16 @@ class Account(CanvasObject):
                 )
         kwargs["grading_scheme_entry"] = grading_scheme_entry
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "accounts/%s/grading_standards" % (self.id),
             title=title,
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return GradingStandard(self._requester, response.json())
+        return GradingStandard(self._requester, await response.json())
 
-    def close_notification_for_user(self, user, notification, **kwargs):
+    async def close_notification_for_user(self, user, notification, **kwargs):
         """
         If the user no long wants to see a notification, it can be
         excused with this call.
@@ -128,16 +128,16 @@ class Account(CanvasObject):
         user_id = obj_or_id(user, "user", (User,))
         notif_id = obj_or_id(notification, "notification", (AccountNotification,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "accounts/{}/users/{}/account_notifications/{}".format(
                 self.id, user_id, notif_id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return AccountNotification(self._requester, response.json())
+        return AccountNotification(self._requester, await response.json())
 
-    def create_account(self, **kwargs):
+    async def create_account(self, **kwargs):
         """
         Create a new root account.
 
@@ -146,14 +146,14 @@ class Account(CanvasObject):
 
         :rtype: :class:`canvasaio.account.Account`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "accounts/{}/root_accounts".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Account(self._requester, response.json())
+        return Account(self._requester, await response.json())
 
-    def create_admin(self, user, **kwargs):
+    async def create_admin(self, user, **kwargs):
         """
         Flag an existing user as an admin of the current account.
 
@@ -170,14 +170,14 @@ class Account(CanvasObject):
         user_id = obj_or_id(user, "user", (User,))
         kwargs["user_id"] = user_id
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "accounts/{}/admins".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Admin(self._requester, response.json())
+        return Admin(self._requester, await response.json())
 
-    def create_content_migration(self, migration_type, **kwargs):
+    async def create_content_migration(self, migration_type, **kwargs):
         """
         Create a content migration.
 
@@ -198,18 +198,18 @@ class Account(CanvasObject):
         else:
             raise TypeError("Parameter migration_type must be of type Migrator or str")
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "accounts/{}/content_migrations".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"account_id": self.id})
 
         return ContentMigration(self._requester, response_json)
 
-    def create_course(self, **kwargs):
+    async def create_course(self, **kwargs):
         """
         Create a course.
 
@@ -220,15 +220,15 @@ class Account(CanvasObject):
         """
         from canvasaio.course import Course
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "accounts/{}/courses".format(self.id),
             account_id=self.id,
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Course(self._requester, response.json())
+        return Course(self._requester, await response.json())
 
-    def create_enrollment_term(self, **kwargs):
+    async def create_enrollment_term(self, **kwargs):
         """
         Create an enrollment term.
 
@@ -239,17 +239,17 @@ class Account(CanvasObject):
         """
         from canvasaio.enrollment_term import EnrollmentTerm
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "accounts/{}/terms".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        enrollment_term_json = response.json()
+        enrollment_term_json = await response.json()
         enrollment_term_json.update({"account_id": self.id})
 
         return EnrollmentTerm(self._requester, enrollment_term_json)
 
-    def create_external_tool(
+    async def create_external_tool(
         self, name, privacy_level, consumer_key, shared_secret, **kwargs
     ):
         """
@@ -271,7 +271,7 @@ class Account(CanvasObject):
         """
         from canvasaio.external_tool import ExternalTool
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "accounts/{}/external_tools".format(self.id),
             name=name,
@@ -280,12 +280,12 @@ class Account(CanvasObject):
             shared_secret=shared_secret,
             _kwargs=combine_kwargs(**kwargs),
         )
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"account_id": self.id})
 
         return ExternalTool(self._requester, response_json)
 
-    def create_group_category(self, name, **kwargs):
+    async def create_group_category(self, name, **kwargs):
         """
         Create a Group Category
 
@@ -298,15 +298,15 @@ class Account(CanvasObject):
         """
         from canvasaio.group import GroupCategory
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "accounts/{}/group_categories".format(self.id),
             name=name,
             _kwargs=combine_kwargs(**kwargs),
         )
-        return GroupCategory(self._requester, response.json())
+        return GroupCategory(self._requester, await response.json())
 
-    def create_notification(self, account_notification, **kwargs):
+    async def create_notification(self, account_notification, **kwargs):
         """
         Create and return a new global notification for an account.
 
@@ -332,18 +332,18 @@ class Account(CanvasObject):
                 )
             )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "accounts/{}/account_notifications".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"account_id": self.id})
 
         return AccountNotification(self._requester, response_json)
 
-    def create_report(self, report_type, **kwargs):
+    async def create_report(self, report_type, **kwargs):
         """
         Generates a report of a specific type for the account.
 
@@ -356,18 +356,18 @@ class Account(CanvasObject):
         :rtype: :class:`canvasaio.account.AccountReport`
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "accounts/{}/reports/{}".format(self.id, report_type),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"account_id": self.id})
 
         return AccountReport(self._requester, response_json)
 
-    def create_role(self, label, **kwargs):
+    async def create_role(self, label, **kwargs):
         """
         Create a new course-level or account-level role.
 
@@ -378,15 +378,15 @@ class Account(CanvasObject):
         :type label: str
         :rtype: :class:`canvasaio.account.Role`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "accounts/{}/roles".format(self.id),
             label=label,
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Role(self._requester, response.json())
+        return Role(self._requester, await response.json())
 
-    def create_sis_import(self, attachment, **kwargs):
+    async def create_sis_import(self, attachment, **kwargs):
         """
         Create a new SIS import for the current account.
 
@@ -402,14 +402,14 @@ class Account(CanvasObject):
         attachment, is_path = file_or_path(attachment)
 
         try:
-            response = self._requester.request(
+            response = await self._requester.request(
                 "POST",
                 "accounts/{}/sis_imports".format(self.id),
                 file={"attachment": attachment},
                 _kwargs=combine_kwargs(**kwargs),
             )
 
-            response_json = response.json()
+            response_json = await response.json()
             response_json.update({"account_id": self.id})
 
             return SisImport(self._requester, response_json)
@@ -417,7 +417,7 @@ class Account(CanvasObject):
             if is_path:
                 attachment.close()
 
-    def create_subaccount(self, account, **kwargs):
+    async def create_subaccount(self, account, **kwargs):
         """
         Add a new sub-account to a given account.
 
@@ -434,14 +434,14 @@ class Account(CanvasObject):
         else:
             raise RequiredFieldMissing("Dictionary with key 'name' is required.")
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "accounts/{}/sub_accounts".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Account(self._requester, response.json())
+        return Account(self._requester, await response.json())
 
-    def create_user(self, pseudonym, **kwargs):
+    async def create_user(self, pseudonym, **kwargs):
         """
         Create and return a new user and pseudonym for an account.
 
@@ -459,14 +459,14 @@ class Account(CanvasObject):
         else:
             raise RequiredFieldMissing("Dictionary with key 'unique_id' is required.")
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "accounts/{}/users".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return User(self._requester, response.json())
+        return User(self._requester, await response.json())
 
-    def create_user_login(self, user, login, **kwargs):
+    async def create_user_login(self, user, login, **kwargs):
         """
         Create a new login for an existing user in the given account
 
@@ -493,14 +493,14 @@ class Account(CanvasObject):
                 ("login must be a dictionary with keys " "'unique_id'.")
             )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "accounts/{}/logins".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Login(self._requester, response.json())
+        return Login(self._requester, await response.json())
 
-    def deactivate_role(self, role, **kwargs):
+    async def deactivate_role(self, role, **kwargs):
         """
         Deactivate a custom role.
 
@@ -514,14 +514,14 @@ class Account(CanvasObject):
         """
         role_id = obj_or_id(role, "role", (Role,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "accounts/{}/roles/{}".format(self.id, role_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Role(self._requester, response.json())
+        return Role(self._requester, await response.json())
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Delete the current account
 
@@ -537,15 +537,15 @@ class Account(CanvasObject):
         if not hasattr(self, "parent_account_id") or not self.parent_account_id:
             raise CanvasException("Cannot delete a root account.")
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "accounts/{}/sub_accounts/{}".format(self.parent_account_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json().get("workflow_state") == "deleted"
+        return (await response.json()).get("workflow_state") == "deleted"
 
-    def delete_grading_period(self, grading_period, **kwargs):
+    async def delete_grading_period(self, grading_period, **kwargs):
         """
         Delete a grading period for an account.
 
@@ -563,15 +563,15 @@ class Account(CanvasObject):
             grading_period, "grading_period", (GradingPeriod,)
         )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "accounts/{}/grading_periods/{}".format(self.id, grading_period_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json().get("delete")
+        return (await response.json()).get("delete")
 
-    def delete_user(self, user, **kwargs):
+    async def delete_user(self, user, **kwargs):
         """
         Delete a user record from a Canvas root account.
 
@@ -595,12 +595,12 @@ class Account(CanvasObject):
 
         user_id = obj_or_id(user, "user", (User,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "accounts/{}/users/{}".format(self.id, user_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return User(self._requester, response.json())
+        return User(self._requester, await response.json())
 
     def get_admins(self, **kwargs):
         """
@@ -661,7 +661,7 @@ class Account(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_authentication_provider(self, authentication_provider, **kwargs):
+    async def get_authentication_provider(self, authentication_provider, **kwargs):
         """
         Get the specified authentication provider
 
@@ -682,7 +682,7 @@ class Account(CanvasObject):
             (AuthenticationProvider,),
         )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/authentication_providers/{}".format(
                 self.id, authentication_providers_id
@@ -690,7 +690,7 @@ class Account(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return AuthenticationProvider(self._requester, response.json())
+        return AuthenticationProvider(self._requester, await response.json())
 
     def get_authentication_providers(self, **kwargs):
         """
@@ -713,7 +713,7 @@ class Account(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_content_migration(self, content_migration, **kwargs):
+    async def get_content_migration(self, content_migration, **kwargs):
         """
         Retrive a content migration by its ID
 
@@ -731,13 +731,13 @@ class Account(CanvasObject):
             content_migration, "content_migration", (ContentMigration,)
         )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/content_migrations/{}".format(self.id, migration_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"account_id": self.id})
 
         return ContentMigration(self._requester, response_json)
@@ -783,7 +783,7 @@ class Account(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_department_level_grade_data_completed(self, **kwargs):
+    async def get_department_level_grade_data_completed(self, **kwargs):
         """
         Return the distribution of all concluded grades in the default term
 
@@ -793,14 +793,14 @@ class Account(CanvasObject):
         :rtype: dict
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/analytics/completed/grades".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()
+        return await response.json()
 
-    def get_department_level_grade_data_current(self, **kwargs):
+    async def get_department_level_grade_data_current(self, **kwargs):
         """
         Return the distribution of all available grades in the default term
 
@@ -810,14 +810,14 @@ class Account(CanvasObject):
         :rtype: dict
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/analytics/current/grades".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()
+        return await response.json()
 
-    def get_department_level_grade_data_with_given_term(self, term_id, **kwargs):
+    async def get_department_level_grade_data_with_given_term(self, term_id, **kwargs):
         """
         Return the distribution of all available or concluded grades with the given term
 
@@ -830,14 +830,14 @@ class Account(CanvasObject):
         :rtype: dict
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/analytics/terms/{}/grades".format(self.id, term_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()
+        return await response.json()
 
-    def get_department_level_participation_data_completed(self, **kwargs):
+    async def get_department_level_participation_data_completed(self, **kwargs):
         """
         Return page view hits all concluded courses in the default term
 
@@ -847,14 +847,14 @@ class Account(CanvasObject):
         :rtype: dict
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/analytics/completed/activity".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()
+        return await response.json()
 
-    def get_department_level_participation_data_current(self, **kwargs):
+    async def get_department_level_participation_data_current(self, **kwargs):
         """
         Return page view hits all available courses in the default term
 
@@ -864,14 +864,14 @@ class Account(CanvasObject):
         :rtype: dict
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/analytics/current/activity".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()
+        return await response.json()
 
-    def get_department_level_participation_data_with_given_term(
+    async def get_department_level_participation_data_with_given_term(
         self, term_id, **kwargs
     ):
         """
@@ -886,14 +886,14 @@ class Account(CanvasObject):
         :rtype: dict
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/analytics/terms/{}/activity".format(self.id, term_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()
+        return await response.json()
 
-    def get_department_level_statistics_completed(self, **kwargs):
+    async def get_department_level_statistics_completed(self, **kwargs):
         """
         Return all available numeric statistics about the department in the default term
 
@@ -903,14 +903,14 @@ class Account(CanvasObject):
         :rtype: dict
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/analytics/completed/statistics".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()
+        return await response.json()
 
-    def get_department_level_statistics_current(self, **kwargs):
+    async def get_department_level_statistics_current(self, **kwargs):
         """
         Return all available numeric statistics about the department in the default term
 
@@ -920,14 +920,14 @@ class Account(CanvasObject):
         :rtype: dict
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/analytics/current/statistics".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()
+        return await response.json()
 
-    def get_department_level_statistics_with_given_term(self, term_id, **kwargs):
+    async def get_department_level_statistics_with_given_term(self, term_id, **kwargs):
         """
         Return numeric statistics about the department with the given term
 
@@ -940,12 +940,12 @@ class Account(CanvasObject):
         :rtype: dict
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/analytics/terms/{}/statistics".format(self.id, term_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()
+        return await response.json()
 
     def get_enabled_features(self, **kwargs):
         """
@@ -966,7 +966,7 @@ class Account(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_enrollment(self, enrollment, **kwargs):
+    async def get_enrollment(self, enrollment, **kwargs):
         """
         Get an enrollment object by ID.
 
@@ -982,14 +982,14 @@ class Account(CanvasObject):
 
         enrollment_id = obj_or_id(enrollment, "enrollment", (Enrollment,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/enrollments/{}".format(self.id, enrollment_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Enrollment(self._requester, response.json())
+        return Enrollment(self._requester, await response.json())
 
-    def get_enrollment_term(self, term, **kwargs):
+    async def get_enrollment_term(self, term, **kwargs):
         """
         Retrieve the details for an enrollment term in the account. Includes overrides by default.
 
@@ -1005,10 +1005,10 @@ class Account(CanvasObject):
 
         term_id = obj_or_id(term, "term", (EnrollmentTerm,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET", "accounts/{}/terms/{}".format(self.id, term_id)
         )
-        return EnrollmentTerm(self._requester, response.json())
+        return EnrollmentTerm(self._requester, await response.json())
 
     def get_enrollment_terms(self, **kwargs):
         """
@@ -1032,7 +1032,7 @@ class Account(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_external_tool(self, tool, **kwargs):
+    async def get_external_tool(self, tool, **kwargs):
         """
         :calls: `GET /api/v1/accounts/:account_id/external_tools/:external_tool_id \
         <https://canvas.instructure.com/doc/api/external_tools.html#method.external_tools.show>`_
@@ -1046,12 +1046,12 @@ class Account(CanvasObject):
 
         tool_id = obj_or_id(tool, "tool", (ExternalTool,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/external_tools/{}".format(self.id, tool_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        tool_json = response.json()
+        tool_json = await response.json()
         tool_json.update({"account_id": self.id})
 
         return ExternalTool(self._requester, tool_json)
@@ -1075,7 +1075,7 @@ class Account(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_feature_flag(self, feature, **kwargs):
+    async def get_feature_flag(self, feature, **kwargs):
         """
         Returns the feature flag that applies to the given account.
 
@@ -1089,12 +1089,12 @@ class Account(CanvasObject):
         """
         feature_name = obj_or_str(feature, "name", (Feature,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/features/flags/{}".format(self.id, feature_name),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return FeatureFlag(self._requester, response.json())
+        return FeatureFlag(self._requester, await response.json())
 
     def get_features(self, **kwargs):
         """
@@ -1115,7 +1115,7 @@ class Account(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_global_notification(self, notification_id, **kwargs):
+    async def get_global_notification(self, notification_id, **kwargs):
         """
         Returns a global notification for the current user.
 
@@ -1128,13 +1128,13 @@ class Account(CanvasObject):
         :rtype: :class:`canvasaio.account.AccountNotification`
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/account_notifications/{}".format(self.id, notification_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"account_id": self.id})
 
         return AccountNotification(self._requester, response_json)
@@ -1157,7 +1157,7 @@ class Account(CanvasObject):
             "accounts/{}/grading_periods".format(self.id),
             {"account_id": self.id},
             _root="grading_periods",
-            kwargs=combine_kwargs(**kwargs),
+            _kwargs=combine_kwargs(**kwargs),
         )
 
     def get_grading_standards(self, **kwargs):
@@ -1260,7 +1260,7 @@ class Account(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_outcome_group(self, group, **kwargs):
+    async def get_outcome_group(self, group, **kwargs):
         """
         Returns the details of the Outcome Group with the given id.
 
@@ -1276,13 +1276,13 @@ class Account(CanvasObject):
         from canvasaio.outcome import OutcomeGroup
 
         outcome_group_id = obj_or_id(group, "outcome group", (OutcomeGroup,))
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/outcome_groups/{}".format(self.id, outcome_group_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return OutcomeGroup(self._requester, response.json())
+        return OutcomeGroup(self._requester, await response.json())
 
     def get_outcome_groups_in_context(self, **kwargs):
         """
@@ -1305,7 +1305,7 @@ class Account(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_outcome_import_status(self, outcome_import, **kwargs):
+    async def get_outcome_import_status(self, outcome_import, **kwargs):
         """
         Get the status of an already created Outcome import.
         Pass 'latest' for the outcome import id for the latest import.
@@ -1326,18 +1326,18 @@ class Account(CanvasObject):
                 outcome_import, "outcome_import", (OutcomeImport,)
             )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/outcome_imports/{}".format(self.id, outcome_import_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"account_id": self.id})
 
         return OutcomeImport(self._requester, response_json)
 
-    def get_report(self, report_type, report_id, **kwargs):
+    async def get_report(self, report_type, report_id, **kwargs):
         """
         Return a report which corresponds to the given report type and ID.
 
@@ -1352,13 +1352,13 @@ class Account(CanvasObject):
 
         :rtype: :class:`canvasaio.account.AccountReport`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/reports/{}/{}".format(self.id, report_type, report_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"account_id": self.id})
 
         return AccountReport(self._requester, response_json)
@@ -1382,7 +1382,7 @@ class Account(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_role(self, role, **kwargs):
+    async def get_role(self, role, **kwargs):
         """
         Retrieve a role by ID.
 
@@ -1396,12 +1396,12 @@ class Account(CanvasObject):
         """
         role_id = obj_or_id(role, "role", (Role,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/roles/{}".format(self.id, role_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Role(self._requester, response.json())
+        return Role(self._requester, await response.json())
 
     def get_roles(self, **kwargs):
         """
@@ -1422,7 +1422,7 @@ class Account(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_root_outcome_group(self, **kwargs):
+    async def get_root_outcome_group(self, **kwargs):
         """
         Redirect to root outcome group for context
 
@@ -1434,14 +1434,14 @@ class Account(CanvasObject):
         """
         from canvasaio.outcome import OutcomeGroup
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/root_outcome_group".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return OutcomeGroup(self._requester, response.json())
+        return OutcomeGroup(self._requester, await response.json())
 
-    def get_rubric(self, rubric_id, **kwargs):
+    async def get_rubric(self, rubric_id, **kwargs):
         """
         Get a single rubric, based on rubric id.
 
@@ -1452,13 +1452,13 @@ class Account(CanvasObject):
         :type rubric_id: int
         :rtype: :class:`canvasaio.rubric.Rubric`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/%s/rubrics/%s" % (self.id, rubric_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return Rubric(self._requester, response.json())
+        return Rubric(self._requester, await response.json())
 
     def get_rubrics(self, **kwargs):
         """
@@ -1497,7 +1497,7 @@ class Account(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_single_grading_standard(self, grading_standard_id, **kwargs):
+    async def get_single_grading_standard(self, grading_standard_id, **kwargs):
         """
         Get a single grading standard from the account.
 
@@ -1509,14 +1509,14 @@ class Account(CanvasObject):
         :rtype: :class:`canvasaio.grading_standards.GradingStandard`
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/%s/grading_standards/%d" % (self.id, grading_standard_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return GradingStandard(self._requester, response.json())
+        return GradingStandard(self._requester, await response.json())
 
-    def get_sis_import(self, sis_import, **kwargs):
+    async def get_sis_import(self, sis_import, **kwargs):
         """
         Retrieve information on an individual SIS import from this account.
 
@@ -1530,13 +1530,13 @@ class Account(CanvasObject):
         """
         sis_import_id = obj_or_id(sis_import, "sis_import", (SisImport,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/sis_imports/{}".format(self.id, sis_import_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"account_id": self.id})
 
         return SisImport(self._requester, response_json)
@@ -1671,7 +1671,7 @@ class Account(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def import_outcome(self, attachment, **kwargs):
+    async def import_outcome(self, attachment, **kwargs):
         """
         Import outcome into canvas.
 
@@ -1687,14 +1687,14 @@ class Account(CanvasObject):
         attachment, is_path = file_or_path(attachment)
 
         try:
-            response = self._requester.request(
+            response = await self._requester.request(
                 "POST",
                 "accounts/{}/outcome_imports".format(self.id),
                 file={"attachment": attachment},
                 _kwargs=combine_kwargs(**kwargs),
             )
 
-            response_json = response.json()
+            response_json = await response.json()
             response_json.update({"account_id": self.id})
 
             return OutcomeImport(self._requester, response_json)
@@ -1702,7 +1702,7 @@ class Account(CanvasObject):
             if is_path:
                 attachment.close()
 
-    def show_account_auth_settings(self, **kwargs):
+    async def show_account_auth_settings(self, **kwargs):
         """
         Return the current state of each account level setting
 
@@ -1712,15 +1712,15 @@ class Account(CanvasObject):
         :rtype: :class:`canvasaio.account.SSOSettings`
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "accounts/{}/sso_settings".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return SSOSettings(self._requester, response.json())
+        return SSOSettings(self._requester, await response.json())
 
-    def update(self, **kwargs):
+    async def update(self, **kwargs):
         """
         Update an existing account.
 
@@ -1730,17 +1730,18 @@ class Account(CanvasObject):
         :returns: True if the account was updated, False otherwise.
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT", "accounts/{}".format(self.id), _kwargs=combine_kwargs(**kwargs)
         )
 
-        if "name" in response.json():
-            super(Account, self).set_attributes(response.json())
+        response_json = await response.json()
+        if "name" in response_json:
+            super(Account, self).set_attributes(response_json)
             return True
         else:
             return False
 
-    def update_account_auth_settings(self, **kwargs):
+    async def update_account_auth_settings(self, **kwargs):
         """
         Return the current state of account level after updated
 
@@ -1750,15 +1751,15 @@ class Account(CanvasObject):
         :rtype: :class:`canvasaio.account.SSOSettings`
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "accounts/{}/sso_settings".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return SSOSettings(self._requester, response.json())
+        return SSOSettings(self._requester, await response.json())
 
-    def update_role(self, role, **kwargs):
+    async def update_role(self, role, **kwargs):
         """
         Update permissions for an existing role.
 
@@ -1772,19 +1773,19 @@ class Account(CanvasObject):
         """
         role_id = obj_or_id(role, "role", (Role,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "accounts/{}/roles/{}".format(self.id, role_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Role(self._requester, response.json())
+        return Role(self._requester, await response.json())
 
 
 class AccountNotification(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.subject, self.id)
 
-    def update_global_notification(self, account_notification, **kwargs):
+    async def update_global_notification(self, account_notification, **kwargs):
         """
         Updates a global notification.
 
@@ -1811,13 +1812,13 @@ class AccountNotification(CanvasObject):
                 )
             )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "accounts/{}/account_notifications/{}".format(self.account_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return AccountNotification(self._requester, response.json())
+        return AccountNotification(self._requester, await response.json())
 
 
 class AccountReport(CanvasObject):
@@ -1828,7 +1829,7 @@ class AccountReport(CanvasObject):
             # Print params if not a report instance
             return "{} ({})".format(self.report, self.parameters)
 
-    def delete_report(self, **kwargs):
+    async def delete_report(self, **kwargs):
         """
         Delete this report.
 
@@ -1837,13 +1838,13 @@ class AccountReport(CanvasObject):
 
         :rtype: :class:`canvasaio.account.AccountReport`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "accounts/{}/reports/{}/{}".format(self.account_id, self.report, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return AccountReport(self._requester, response.json())
+        return AccountReport(self._requester, await response.json())
 
 
 class Role(CanvasObject):
