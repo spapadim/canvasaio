@@ -1,7 +1,6 @@
 import unittest
 import uuid
-
-import requests_mock
+from aioresponses import aioresponses
 
 from canvasaio import Canvas
 from canvasaio.assignment import (
@@ -16,24 +15,27 @@ from canvasaio.progress import Progress
 from canvasaio.submission import Submission
 from canvasaio.user import UserDisplay
 from tests import settings
-from tests.util import register_uris, cleanup_file
+from tests.util import register_uris, cleanup_file, aioresponse_mock
 
 
-@requests_mock.Mocker()
-class TestAssignment(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestAssignment(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             register_uris({"course": ["get_by_id", "get_assignment_by_id"]}, m)
 
-            self.course = self.canvas.get_course(1)
-            self.assignment = self.course.get_assignment(1)
+            self.course = await self.canvas.get_course(1)
+            self.assignment = await self.course.get_assignment(1)
 
-    def test__init__overrides(self, m):
+    async def asyncTearDown(self):
+        await self.canvas.close()
+
+    async def test__init__overrides(self, m):
         register_uris({"assignment": ["get_assignment_with_overrides"]}, m)
 
-        assignment = self.course.get_assignment(1)
+        assignment = await self.course.get_assignment(1)
 
         self.assertTrue(hasattr(assignment, "overrides"))
         self.assertIsInstance(assignment.overrides, list)
@@ -41,10 +43,10 @@ class TestAssignment(unittest.TestCase):
         self.assertIsInstance(assignment.overrides[0], AssignmentOverride)
 
     # create_override()
-    def test_create_override(self, m):
+    async def test_create_override(self, m):
         register_uris({"assignment": ["create_override"]}, m)
 
-        override = self.assignment.create_override(
+        override = await self.assignment.create_override(
             assignment_override={
                 "student_ids": [1, 2, 3],
                 "title": "New Assignment Override",
@@ -55,44 +57,44 @@ class TestAssignment(unittest.TestCase):
         self.assertEqual(override.title, "New Assignment Override")
 
     # delete()
-    def test_delete_assignments(self, m):
+    async def test_delete_assignments(self, m):
         register_uris({"assignment": ["delete_assignment"]}, m)
 
-        deleted_assignment = self.assignment.delete()
+        deleted_assignment = await self.assignment.delete()
 
         self.assertIsInstance(deleted_assignment, Assignment)
 
     # edit()
-    def test_edit_assignment(self, m):
+    async def test_edit_assignment(self, m):
         register_uris({"assignment": ["edit_assignment"]}, m)
 
         name = "New Name"
-        edited_assignment = self.assignment.edit(assignment={"name": name})
+        edited_assignment = await self.assignment.edit(assignment={"name": name})
 
         self.assertIsInstance(edited_assignment, Assignment)
         self.assertTrue(hasattr(edited_assignment, "name"))
         self.assertEqual(edited_assignment.name, name)
 
     # get_gradeable_students()
-    def test_get_gradeable_students(self, m):
+    async def test_get_gradeable_students(self, m):
         register_uris({"course": ["list_gradeable_students"]}, m)
 
         students = self.assignment.get_gradeable_students()
-        student_list = [student for student in students]
+        student_list = [student async for student in students]
 
         self.assertEqual(len(student_list), 2)
         self.assertIsInstance(student_list[0], UserDisplay)
 
     # get_override()
-    def test_get_override(self, m):
+    async def test_get_override(self, m):
         register_uris({"assignment": ["get_assignment_override"]}, m)
 
-        override = self.assignment.get_override(1)
+        override = await self.assignment.get_override(1)
 
         self.assertIsInstance(override, AssignmentOverride)
 
     # get_overrides()
-    def test_get_overrides(self, m):
+    async def test_get_overrides(self, m):
         register_uris(
             {
                 "assignment": [
@@ -104,51 +106,51 @@ class TestAssignment(unittest.TestCase):
         )
 
         overrides = self.assignment.get_overrides()
-        override_list = [override for override in overrides]
+        override_list = [override async for override in overrides]
 
         self.assertEqual(len(override_list), 4)
         self.assertIsInstance(override_list[0], AssignmentOverride)
         self.assertIsInstance(override_list[3], AssignmentOverride)
 
     # get_peer_reviews()
-    def test_get_peer_reviews(self, m):
+    async def test_get_peer_reviews(self, m):
         register_uris({"assignment": ["list_peer_reviews"]}, m)
 
         peer_reviews = self.assignment.get_peer_reviews()
-        peer_review_list = [peer_review for peer_review in peer_reviews]
+        peer_review_list = [peer_review async for peer_review in peer_reviews]
 
         self.assertEqual(len(peer_review_list), 2)
         self.assertIsInstance(peer_review_list[0], PeerReview)
 
     # get_submission()
-    def test_get_submission(self, m):
+    async def test_get_submission(self, m):
         register_uris({"submission": ["get_by_id_course"], "user": ["get_by_id"]}, m)
 
         user_id = 1
-        submission_by_id = self.assignment.get_submission(user_id)
+        submission_by_id = await self.assignment.get_submission(user_id)
         self.assertIsInstance(submission_by_id, Submission)
         self.assertTrue(hasattr(submission_by_id, "submission_type"))
 
-        user = self.canvas.get_user(user_id)
-        submission_by_obj = self.assignment.get_submission(user)
+        user = await self.canvas.get_user(user_id)
+        submission_by_obj = await self.assignment.get_submission(user)
         self.assertIsInstance(submission_by_obj, Submission)
         self.assertTrue(hasattr(submission_by_obj, "submission_type"))
 
     # get_submissions()
-    def test_get_submissions(self, m):
+    async def test_get_submissions(self, m):
         register_uris({"submission": ["list_submissions"]}, m)
 
         submissions = self.assignment.get_submissions()
-        submission_list_by_id = [submission for submission in submissions]
+        submission_list_by_id = [submission async for submission in submissions]
 
         self.assertEqual(len(submission_list_by_id), 2)
         self.assertIsInstance(submission_list_by_id[0], Submission)
 
     # set_extensions()
-    def test_set_extensions(self, m):
+    async def test_set_extensions(self, m):
         register_uris({"assignment": ["set_extensions"]}, m)
 
-        extension = self.assignment.set_extensions(
+        extension = await self.assignment.set_extensions(
             [{"user_id": 3, "extra_attempts": 2}, {"user_id": 2, "extra_attempts": 2}]
         )
 
@@ -288,8 +290,8 @@ class TestAssignment(unittest.TestCase):
             cleanup_file(filename)
 
 
-@requests_mock.Mocker()
-class TestAssignmentExtension(unittest.TestCase):
+@aioresponse_mock
+class TestAssignmentExtension(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
@@ -304,19 +306,21 @@ class TestAssignmentExtension(unittest.TestCase):
         self.assertIsInstance(string, str)
 
 
-@requests_mock.Mocker()
-class TestAssignmentGroup(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestAssignmentGroup(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             register_uris(
                 {"course": ["get_by_id"], "assignment": ["get_assignment_group"]}, m
             )
 
-            self.course = self.canvas.get_course(1)
-            self.assignment_group = self.course.get_assignment_group(5)
+            self.course = await self.canvas.get_course(1)
+            self.assignment_group = await self.course.get_assignment_group(5)
 
+    async def asyncTearDown(self):
+        await self.canvas.close()
     # edit()
     def test_edit_assignment_group(self, m):
         register_uris({"assignment": ["edit_assignment_group"]}, m)
@@ -346,12 +350,12 @@ class TestAssignmentGroup(unittest.TestCase):
         self.assertIsInstance(string, str)
 
 
-@requests_mock.Mocker()
-class TestAssignmentOverride(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock()
+class TestAssignmentOverride(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             register_uris(
                 {
                     "course": ["get_by_id", "get_assignment_by_id"],
@@ -360,9 +364,12 @@ class TestAssignmentOverride(unittest.TestCase):
                 m,
             )
 
-            self.course = self.canvas.get_course(1)
-            self.assignment = self.course.get_assignment(1)
-            self.assignment_override = self.assignment.get_override(1)
+            self.course = await self.canvas.get_course(1)
+            self.assignment = await self.course.get_assignment(1)
+            self.assignment_override = await self.assignment.get_override(1)
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):

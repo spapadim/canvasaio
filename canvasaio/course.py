@@ -41,7 +41,7 @@ class Course(CanvasObject):
     def __str__(self):
         return "{} {} ({})".format(self.course_code, self.name, self.id)
 
-    def add_grading_standards(self, title, grading_scheme_entry, **kwargs):
+    async def add_grading_standards(self, title, grading_scheme_entry, **kwargs):
         """
         Create a new grading standard for the course.
 
@@ -66,15 +66,15 @@ class Course(CanvasObject):
                 )
         kwargs["grading_scheme_entry"] = grading_scheme_entry
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/%s/grading_standards" % (self.id),
             title=title,
             _kwargs=combine_kwargs(**kwargs),
         )
-        return GradingStandard(self._requester, response.json())
+        return GradingStandard(self._requester, await response.json())
 
-    def column_data_bulk_update(self, column_data, **kwargs):
+    async def column_data_bulk_update(self, column_data, **kwargs):
         """
         Set the content of custom columns.
 
@@ -88,15 +88,15 @@ class Course(CanvasObject):
 
         kwargs["column_data"] = column_data
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/custom_gradebook_column_data".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return Progress(self._requester, response.json())
+        return Progress(self._requester, await response.json())
 
-    def conclude(self, **kwargs):
+    async def conclude(self, **kwargs):
         """
         Mark this course as concluded.
 
@@ -108,15 +108,15 @@ class Course(CanvasObject):
         """
         kwargs["event"] = "conclude"
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "courses/{}".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json().get("conclude")
+        return (await response.json()).get("conclude")
 
-    def create_assignment(self, assignment, **kwargs):
+    async def create_assignment(self, assignment, **kwargs):
         """
         Create a new assignment for this course.
 
@@ -136,15 +136,15 @@ class Course(CanvasObject):
         else:
             raise RequiredFieldMissing("Dictionary with key 'name' is required.")
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/assignments".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return Assignment(self._requester, response.json())
+        return Assignment(self._requester, await response.json())
 
-    def create_assignment_group(self, **kwargs):
+    async def create_assignment_group(self, **kwargs):
         """
         Create a new assignment group for this course.
 
@@ -155,12 +155,12 @@ class Course(CanvasObject):
         """
         from canvasaio.assignment import AssignmentGroup
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/assignment_groups".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"course_id": self.id})
 
         return AssignmentGroup(self._requester, response_json)
@@ -191,7 +191,7 @@ class Course(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def create_content_migration(self, migration_type, **kwargs):
+    async def create_content_migration(self, migration_type, **kwargs):
         """
         Create a content migration.
 
@@ -212,18 +212,18 @@ class Course(CanvasObject):
         else:
             raise TypeError("Parameter migration_type must be of type Migrator or str")
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/content_migrations".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"course_id": self.id})
 
         return ContentMigration(self._requester, response_json)
 
-    def create_course_section(self, **kwargs):
+    async def create_course_section(self, **kwargs):
         """
         Create a new section for this course.
 
@@ -235,15 +235,15 @@ class Course(CanvasObject):
 
         from canvasaio.section import Section
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/sections".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return Section(self._requester, response.json())
+        return Section(self._requester, await response.json())
 
-    def create_custom_column(self, column, **kwargs):
+    async def create_custom_column(self, column, **kwargs):
         """
         Create a custom gradebook column.
 
@@ -260,17 +260,17 @@ class Course(CanvasObject):
         else:
             raise RequiredFieldMissing("Dictionary with key 'title' is required.")
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/custom_gradebook_columns".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        column_json = response.json()
+        column_json = await response.json()
         column_json.update({"course_id": self.id})
 
         return CustomGradebookColumn(self._requester, column_json)
 
-    def create_discussion_topic(self, **kwargs):
+    async def create_discussion_topic(self, **kwargs):
         """
         Creates a new discussion topic for the course or group.
 
@@ -279,18 +279,18 @@ class Course(CanvasObject):
 
         :rtype: :class:`canvasaio.discussion_topic.DiscussionTopic`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/discussion_topics".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"course_id": self.id})
 
         return DiscussionTopic(self._requester, response_json)
 
-    def create_epub_export(self, **kwargs):
+    async def create_epub_export(self, **kwargs):
         """
         Create an ePub export for a course.
 
@@ -299,15 +299,15 @@ class Course(CanvasObject):
 
         :rtype: :class:`canvasaio.course_epub_export.CourseEpubExport`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/epub_exports/".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return CourseEpubExport(self._requester, response.json())
+        return CourseEpubExport(self._requester, await response.json())
 
-    def create_external_feed(self, url, **kwargs):
+    async def create_external_feed(self, url, **kwargs):
         """
         Create a new external feed for the course.
 
@@ -320,15 +320,15 @@ class Course(CanvasObject):
         """
         from canvasaio.external_feed import ExternalFeed
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/external_feeds".format(self.id),
             url=url,
             _kwargs=combine_kwargs(**kwargs),
         )
-        return ExternalFeed(self._requester, response.json())
+        return ExternalFeed(self._requester, await response.json())
 
-    def create_external_tool(self, **kwargs):
+    async def create_external_tool(self, **kwargs):
         """
         Create an external tool in the current course.
 
@@ -349,17 +349,17 @@ class Course(CanvasObject):
                 "`name`, `privacy_level`, `consumer_key`, and `shared_secret` parameters."
             )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/external_tools".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"course_id": self.id})
 
         return ExternalTool(self._requester, response_json)
 
-    def create_folder(self, name, **kwargs):
+    async def create_folder(self, name, **kwargs):
         """
         Creates a folder in this course.
 
@@ -370,15 +370,15 @@ class Course(CanvasObject):
         :type name: str
         :rtype: :class:`canvasaio.folder.Folder`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/folders".format(self.id),
             name=name,
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Folder(self._requester, response.json())
+        return Folder(self._requester, await response.json())
 
-    def create_group_category(self, name, **kwargs):
+    async def create_group_category(self, name, **kwargs):
         """
         Create a group category.
 
@@ -391,15 +391,15 @@ class Course(CanvasObject):
         """
         from canvasaio.group import GroupCategory
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/group_categories".format(self.id),
             name=name,
             _kwargs=combine_kwargs(**kwargs),
         )
-        return GroupCategory(self._requester, response.json())
+        return GroupCategory(self._requester, await response.json())
 
-    def create_late_policy(self, **kwargs):
+    async def create_late_policy(self, **kwargs):
         """
         Create a late policy. If the course already has a late policy, a bad_request
         is returned since there can only be one late policy per course.
@@ -410,16 +410,16 @@ class Course(CanvasObject):
         :rtype: :class:`canvasaio.course.LatePolicy`
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/late_policy".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        late_policy_json = response.json()
+        late_policy_json = await response.json()
 
         return LatePolicy(self._requester, late_policy_json["late_policy"])
 
-    def create_module(self, module, **kwargs):
+    async def create_module(self, module, **kwargs):
         """
         Create a new module.
 
@@ -438,17 +438,17 @@ class Course(CanvasObject):
         else:
             raise RequiredFieldMissing("Dictionary with key 'name' is required.")
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/modules".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        module_json = response.json()
+        module_json = await response.json()
         module_json.update({"course_id": self.id})
 
         return Module(self._requester, module_json)
 
-    def create_page(self, wiki_page, **kwargs):
+    async def create_page(self, wiki_page, **kwargs):
         """
         Create a new wiki page.
 
@@ -466,16 +466,16 @@ class Course(CanvasObject):
         else:
             raise RequiredFieldMissing("Dictionary with key 'title' is required.")
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST", "courses/{}/pages".format(self.id), _kwargs=combine_kwargs(**kwargs)
         )
 
-        page_json = response.json()
+        page_json = await response.json()
         page_json.update({"course_id": self.id})
 
         return Page(self._requester, page_json)
 
-    def create_quiz(self, quiz, **kwargs):
+    async def create_quiz(self, quiz, **kwargs):
         """
         Create a new quiz in this course.
 
@@ -493,17 +493,17 @@ class Course(CanvasObject):
         else:
             raise RequiredFieldMissing("Dictionary with key 'title' is required.")
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/quizzes".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        quiz_json = response.json()
+        quiz_json = await response.json()
         quiz_json.update({"course_id": self.id})
 
         return Quiz(self._requester, quiz_json)
 
-    def create_rubric(self, **kwargs):
+    async def create_rubric(self, **kwargs):
         """
         Create a new rubric.
 
@@ -513,13 +513,13 @@ class Course(CanvasObject):
         :returns: Returns a dictionary with rubric and rubric association.
         :rtype: `dict`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/rubrics".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        dictionary = response.json()
+        dictionary = await response.json()
 
         rubric_dict = {}
 
@@ -537,7 +537,7 @@ class Course(CanvasObject):
 
         return rubric_dict
 
-    def create_rubric_association(self, **kwargs):
+    async def create_rubric_association(self, **kwargs):
         """
         Create a new RubricAssociation.
 
@@ -549,18 +549,18 @@ class Course(CanvasObject):
         """
         from canvasaio.rubric import RubricAssociation
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/rubric_associations".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        quiz_json = response.json()
+        quiz_json = await response.json()
         quiz_json.update({"course_id": self.id})
 
         return RubricAssociation(self._requester, quiz_json)
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Permanently delete this course.
 
@@ -572,14 +572,14 @@ class Course(CanvasObject):
         """
         kwargs["event"] = "delete"
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "courses/{}".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json().get("delete")
+        return (await response.json()).get("delete")
 
-    def delete_external_feed(self, feed, **kwargs):
+    async def delete_external_feed(self, feed, **kwargs):
         """
         Deletes the external feed.
 
@@ -595,14 +595,14 @@ class Course(CanvasObject):
 
         feed_id = obj_or_id(feed, "feed", (ExternalFeed,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "courses/{}/external_feeds/{}".format(self.id, feed_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return ExternalFeed(self._requester, response.json())
+        return ExternalFeed(self._requester, await response.json())
 
-    def edit_front_page(self, **kwargs):
+    async def edit_front_page(self, **kwargs):
         """
         Update the title or contents of the front page.
 
@@ -611,17 +611,17 @@ class Course(CanvasObject):
 
         :rtype: :class:`canvasaio.course.Course`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/front_page".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        page_json = response.json()
+        page_json = await response.json()
         page_json.update({"course_id": self.id})
 
         return Page(self._requester, page_json)
 
-    def edit_late_policy(self, **kwargs):
+    async def edit_late_policy(self, **kwargs):
         """
         Patch a late policy. No body is returned upon success.
 
@@ -632,15 +632,15 @@ class Course(CanvasObject):
         :rtype: bool
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PATCH",
             "courses/{}/late_policy".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.status_code == 204
+        return response.status == 204
 
-    def enroll_user(self, user, enrollment_type, **kwargs):
+    async def enroll_user(self, user, enrollment_type, **kwargs):
         """
         Create a new user enrollment for a course or a section.
 
@@ -659,15 +659,15 @@ class Course(CanvasObject):
         kwargs["enrollment[user_id]"] = obj_or_id(user, "user", (User,))
         kwargs["enrollment[type]"] = enrollment_type
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/enrollments".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return Enrollment(self._requester, response.json())
+        return Enrollment(self._requester, await response.json())
 
-    def export_content(self, export_type, **kwargs):
+    async def export_content(self, export_type, **kwargs):
         """
         Begin a content export job for a course.
 
@@ -683,12 +683,12 @@ class Course(CanvasObject):
 
         kwargs["export_type"] = export_type
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/content_exports".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return ContentExport(self._requester, response.json())
+        return ContentExport(self._requester, await response.json())
 
     def get_all_outcome_links_in_context(self, **kwargs):
         """
@@ -711,7 +711,7 @@ class Course(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_assignment(self, assignment, **kwargs):
+    async def get_assignment(self, assignment, **kwargs):
         """
         Return the assignment with the given ID.
 
@@ -727,14 +727,14 @@ class Course(CanvasObject):
 
         assignment_id = obj_or_id(assignment, "assignment", (Assignment,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/assignments/{}".format(self.id, assignment_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Assignment(self._requester, response.json())
+        return Assignment(self._requester, await response.json())
 
-    def get_assignment_group(self, assignment_group, **kwargs):
+    async def get_assignment_group(self, assignment_group, **kwargs):
         """
         Retrieve specified assignment group for the specified course.
 
@@ -752,12 +752,12 @@ class Course(CanvasObject):
             assignment_group, "assignment_group", (AssignmentGroup,)
         )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/assignment_groups/{}".format(self.id, assignment_group_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"course_id": self.id})
 
         return AssignmentGroup(self._requester, response_json)
@@ -855,7 +855,7 @@ class Course(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_blueprint(self, template="default", **kwargs):
+    async def get_blueprint(self, template="default", **kwargs):
         """
         Return the blueprint of a given ID.
 
@@ -874,12 +874,12 @@ class Course(CanvasObject):
         else:
             template_id = obj_or_id(template, "template", (BlueprintTemplate,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/blueprint_templates/{}".format(self.id, template_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return BlueprintTemplate(self._requester, response.json())
+        return BlueprintTemplate(self._requester, await response.json())
 
     def get_collaborations(self, **kwargs):
         """
@@ -896,10 +896,10 @@ class Course(CanvasObject):
             "GET",
             "courses/{}/collaborations".format(self.id),
             _root="collaborations",
-            kwargs=combine_kwargs(**kwargs),
+            _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_content_export(self, content_export, **kwargs):
+    async def get_content_export(self, content_export, **kwargs):
         """
         Return information about a single content export.
 
@@ -915,13 +915,13 @@ class Course(CanvasObject):
 
         export_id = obj_or_id(content_export, "content_export", (ContentExport,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/content_exports/{}".format(self.id, export_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return ContentExport(self._requester, response.json())
+        return ContentExport(self._requester, await response.json())
 
     def get_content_exports(self, **kwargs):
         """
@@ -940,10 +940,10 @@ class Course(CanvasObject):
             self._requester,
             "GET",
             "courses/{}/content_exports".format(self.id),
-            kwargs=combine_kwargs(**kwargs),
+            _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_content_migration(self, content_migration, **kwargs):
+    async def get_content_migration(self, content_migration, **kwargs):
         """
         Retrive a content migration by its ID
 
@@ -961,13 +961,13 @@ class Course(CanvasObject):
             content_migration, "content_migration", (ContentMigration,)
         )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/content_migrations/{}".format(self.id, migration_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"course_id": self.id})
 
         return ContentMigration(self._requester, response_json)
@@ -993,7 +993,7 @@ class Course(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_course_level_assignment_data(self, **kwargs):
+    async def get_course_level_assignment_data(self, **kwargs):
         """
         Return a list of assignments for the course sorted by due date
 
@@ -1003,15 +1003,15 @@ class Course(CanvasObject):
         :rtype: dict
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/analytics/assignments".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json()
+        return await response.json()
 
-    def get_course_level_participation_data(self, **kwargs):
+    async def get_course_level_participation_data(self, **kwargs):
         """
         Return page view hits and participation numbers grouped by day through the course's history
 
@@ -1021,15 +1021,15 @@ class Course(CanvasObject):
         :rtype: dict
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/analytics/activity".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json()
+        return await response.json()
 
-    def get_course_level_student_summary_data(self, **kwargs):
+    async def get_course_level_student_summary_data(self, **kwargs):
         """
         Return a summary of per-user access information for all students in a course
 
@@ -1039,13 +1039,13 @@ class Course(CanvasObject):
         :rtype: dict
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/analytics/student_summaries".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json()
+        return await response.json()
 
     def get_custom_columns(self, **kwargs):
         """
@@ -1066,7 +1066,7 @@ class Course(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_discussion_topic(self, topic, **kwargs):
+    async def get_discussion_topic(self, topic, **kwargs):
         """
         Return data on an individual discussion topic.
 
@@ -1080,13 +1080,13 @@ class Course(CanvasObject):
         """
         topic_id = obj_or_id(topic, "topic", (DiscussionTopic,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/discussion_topics/{}".format(self.id, topic_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"course_id": self.id})
 
         return DiscussionTopic(self._requester, response_json)
@@ -1149,7 +1149,7 @@ class Course(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_epub_export(self, epub, **kwargs):
+    async def get_epub_export(self, epub, **kwargs):
         """
         Get information about a single epub export.
 
@@ -1164,13 +1164,13 @@ class Course(CanvasObject):
 
         epub_id = obj_or_id(epub, "epub", (CourseEpubExport,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/epub_exports/{}".format(self.id, epub_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return CourseEpubExport(self._requester, response.json())
+        return CourseEpubExport(self._requester, await response.json())
 
     def get_external_feeds(self, **kwargs):
         """
@@ -1192,7 +1192,7 @@ class Course(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_external_tool(self, tool, **kwargs):
+    async def get_external_tool(self, tool, **kwargs):
         """
         :calls: `GET /api/v1/courses/:course_id/external_tools/:external_tool_id \
         <https://canvas.instructure.com/doc/api/external_tools.html#method.external_tools.show>`_
@@ -1206,12 +1206,12 @@ class Course(CanvasObject):
 
         tool_id = obj_or_id(tool, "tool", (ExternalTool,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/external_tools/{}".format(self.id, tool_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        tool_json = response.json()
+        tool_json = await response.json()
         tool_json.update({"course_id": self.id})
 
         return ExternalTool(self._requester, tool_json)
@@ -1235,7 +1235,7 @@ class Course(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_feature_flag(self, feature, **kwargs):
+    async def get_feature_flag(self, feature, **kwargs):
         """
         Return the feature flag that applies to given course.
 
@@ -1249,12 +1249,12 @@ class Course(CanvasObject):
         """
         feature_name = obj_or_str(feature, "name", (Feature,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/features/flags/{}".format(self.id, feature_name),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return FeatureFlag(self._requester, response.json())
+        return FeatureFlag(self._requester, await response.json())
 
     def get_features(self, **kwargs):
         """
@@ -1275,7 +1275,7 @@ class Course(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_file(self, file, **kwargs):
+    async def get_file(self, file, **kwargs):
         """
         Return the standard attachment json object for a file.
 
@@ -1291,12 +1291,12 @@ class Course(CanvasObject):
 
         file_id = obj_or_id(file, "file", (File,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/files/{}".format(self.id, file_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return File(self._requester, response.json())
+        return File(self._requester, await response.json())
 
     def get_files(self, **kwargs):
         """
@@ -1318,7 +1318,7 @@ class Course(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_folder(self, folder, **kwargs):
+    async def get_folder(self, folder, **kwargs):
         """
         Returns the details for a course folder
 
@@ -1332,12 +1332,12 @@ class Course(CanvasObject):
         """
         folder_id = obj_or_id(folder, "folder", (Folder,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/folders/{}".format(self.id, folder_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Folder(self._requester, response.json())
+        return Folder(self._requester, await response.json())
 
     def get_folders(self, **kwargs):
         """
@@ -1358,7 +1358,7 @@ class Course(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_full_discussion_topic(self, topic, **kwargs):
+    async def get_full_discussion_topic(self, topic, **kwargs):
         """
         Return a cached structure of the discussion topic.
 
@@ -1372,12 +1372,12 @@ class Course(CanvasObject):
         """
         topic_id = obj_or_id(topic, "topic", (DiscussionTopic,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/discussion_topics/{}/view".format(self.id, topic_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()
+        return await response.json()
 
     def get_gradebook_history_dates(self, **kwargs):
         """
@@ -1421,10 +1421,10 @@ class Course(CanvasObject):
             self._requester,
             "GET",
             "courses/{}/gradebook_history/{}".format(self.id, date),
-            kwargs=combine_kwargs(**kwargs),
+            _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_grading_period(self, grading_period, **kwargs):
+    async def get_grading_period(self, grading_period, **kwargs):
         """
         Return a single grading period for the associated course and id.
 
@@ -1436,13 +1436,13 @@ class Course(CanvasObject):
         :rtype: :class:`canvasaio.grading_period.GradingPeriod`
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/grading_periods/{}".format(self.id, grading_period),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_grading_period = response.json()["grading_periods"][0]
+        response_grading_period = (await response.json())["grading_periods"][0]
         response_grading_period.update({"course_id": self.id})
 
         return GradingPeriod(self._requester, response_grading_period)
@@ -1465,7 +1465,7 @@ class Course(CanvasObject):
             "courses/{}/grading_periods".format(self.id),
             {"course_id": self.id},
             _root="grading_periods",
-            kwargs=combine_kwargs(**kwargs),
+            _kwargs=combine_kwargs(**kwargs),
         )
 
     def get_grading_standards(self, **kwargs):
@@ -1526,7 +1526,7 @@ class Course(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_late_policy(self, **kwargs):
+    async def get_late_policy(self, **kwargs):
         """
         Returns the late policy for a course.
 
@@ -1536,12 +1536,12 @@ class Course(CanvasObject):
         :rtype: :class:`canvasaio.course.LatePolicy`
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/late_policy".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        late_policy_json = response.json()
+        late_policy_json = await response.json()
 
         return LatePolicy(self._requester, late_policy_json["late_policy"])
 
@@ -1585,7 +1585,7 @@ class Course(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_module(self, module, **kwargs):
+    async def get_module(self, module, **kwargs):
         """
         Retrieve a single module by ID.
 
@@ -1601,10 +1601,10 @@ class Course(CanvasObject):
 
         module_id = obj_or_id(module, "module", (Module,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET", "courses/{}/modules/{}".format(self.id, module_id)
         )
-        module_json = response.json()
+        module_json = await response.json()
         module_json.update({"course_id": self.id})
 
         return Module(self._requester, module_json)
@@ -1658,7 +1658,7 @@ class Course(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_outcome_group(self, group, **kwargs):
+    async def get_outcome_group(self, group, **kwargs):
         """
         Returns the details of the Outcome Group with the given id.
 
@@ -1675,11 +1675,11 @@ class Course(CanvasObject):
 
         outcome_group_id = obj_or_id(group, "group", (OutcomeGroup,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET", "courses/{}/outcome_groups/{}".format(self.id, outcome_group_id)
         )
 
-        return OutcomeGroup(self._requester, response.json())
+        return OutcomeGroup(self._requester, await response.json())
 
     def get_outcome_groups_in_context(self, **kwargs):
         """
@@ -1702,7 +1702,7 @@ class Course(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_outcome_import_status(self, outcome_import, **kwargs):
+    async def get_outcome_import_status(self, outcome_import, **kwargs):
         """
         Get the status of an already created Outcome import.
         Pass 'latest' for the outcome import id for the latest import.
@@ -1723,18 +1723,18 @@ class Course(CanvasObject):
                 outcome_import, "outcome_import", (OutcomeImport,)
             )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/outcome_imports/{}".format(self.id, outcome_import_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"course_id": self.id})
 
         return OutcomeImport(self._requester, response_json)
 
-    def get_outcome_result_rollups(self, **kwargs):
+    async def get_outcome_result_rollups(self, **kwargs):
         """
         Get all outcome result rollups for context - BETA
 
@@ -1744,15 +1744,15 @@ class Course(CanvasObject):
         :returns: List of outcome result rollups in the context.
         :rtype: dict
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/outcome_rollups".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json()
+        return await response.json()
 
-    def get_outcome_results(self, **kwargs):
+    async def get_outcome_results(self, **kwargs):
         """
         Get all outcome results for context - BETA
 
@@ -1762,15 +1762,15 @@ class Course(CanvasObject):
         :returns: List of potential related outcome result dicts.
         :rtype: dict
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/outcome_results".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json()
+        return await response.json()
 
-    def get_page(self, url, **kwargs):
+    async def get_page(self, url, **kwargs):
         """
         Retrieve the contents of a wiki page.
 
@@ -1783,12 +1783,12 @@ class Course(CanvasObject):
         :rtype: :class:`canvasaio.course.Course`
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/pages/{}".format(self.id, url),
             _kwargs=combine_kwargs(**kwargs),
         )
-        page_json = response.json()
+        page_json = await response.json()
         page_json.update({"course_id": self.id})
 
         return Page(self._requester, page_json)
@@ -1812,7 +1812,7 @@ class Course(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_quiz(self, quiz, **kwargs):
+    async def get_quiz(self, quiz, **kwargs):
         """
         Return the quiz with the given id.
 
@@ -1828,12 +1828,12 @@ class Course(CanvasObject):
 
         quiz_id = obj_or_id(quiz, "quiz", (Quiz,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/quizzes/{}".format(self.id, quiz_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        quiz_json = response.json()
+        quiz_json = await response.json()
         quiz_json.update({"course_id": self.id})
 
         return Quiz(self._requester, quiz_json)
@@ -1903,7 +1903,7 @@ class Course(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_root_outcome_group(self, **kwargs):
+    async def get_root_outcome_group(self, **kwargs):
         """
         Redirect to root outcome group for context
 
@@ -1915,14 +1915,14 @@ class Course(CanvasObject):
         """
         from canvasaio.outcome import OutcomeGroup
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/root_outcome_group".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return OutcomeGroup(self._requester, response.json())
+        return OutcomeGroup(self._requester, await response.json())
 
-    def get_rubric(self, rubric_id, **kwargs):
+    async def get_rubric(self, rubric_id, **kwargs):
         """
         Get a single rubric, based on rubric id.
 
@@ -1933,13 +1933,13 @@ class Course(CanvasObject):
         :type rubric_id: int
         :rtype: :class:`canvasaio.rubric.Rubric`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/%s/rubrics/%s" % (self.id, rubric_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return Rubric(self._requester, response.json())
+        return Rubric(self._requester, await response.json())
 
     def get_rubrics(self, **kwargs):
         """
@@ -1959,7 +1959,7 @@ class Course(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_section(self, section, **kwargs):
+    async def get_section(self, section, **kwargs):
         """
         Retrieve a section.
 
@@ -1975,12 +1975,12 @@ class Course(CanvasObject):
 
         section_id = obj_or_id(section, "section", (Section,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/sections/{}".format(self.id, section_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Section(self._requester, response.json())
+        return Section(self._requester, await response.json())
 
     def get_sections(self, **kwargs):
         """
@@ -2002,7 +2002,7 @@ class Course(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_settings(self, **kwargs):
+    async def get_settings(self, **kwargs):
         """
         Returns this course's settings.
 
@@ -2011,14 +2011,14 @@ class Course(CanvasObject):
 
         :rtype: dict
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/settings".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()
+        return await response.json()
 
-    def get_single_grading_standard(self, grading_standard_id, **kwargs):
+    async def get_single_grading_standard(self, grading_standard_id, **kwargs):
         """
         Get a single grading standard from the course.
 
@@ -2030,12 +2030,12 @@ class Course(CanvasObject):
         :rtype: :class:`canvasaio.grading_standards.GradingStandard`
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/%s/grading_standards/%d" % (self.id, grading_standard_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return GradingStandard(self._requester, response.json())
+        return GradingStandard(self._requester, await response.json())
 
     def get_submission_history(self, date, grader_id, assignment_id, **kwargs):
         """
@@ -2064,7 +2064,7 @@ class Course(CanvasObject):
             "courses/{}/gradebook_history/{}/graders/{}/assignments/{}/submissions".format(
                 self.id, date, grader_id, assignment_id
             ),
-            kwargs=combine_kwargs(**kwargs),
+            _kwargs=combine_kwargs(**kwargs),
         )
 
     def get_tabs(self, **kwargs):
@@ -2107,10 +2107,10 @@ class Course(CanvasObject):
             self._requester,
             "GET",
             "courses/{}/gradebook_history/feed".format(self.id),
-            kwargs=combine_kwargs(**kwargs),
+            _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_user(self, user, user_id_type=None, **kwargs):
+    async def get_user(self, user, user_id_type=None, **kwargs):
         """
         Retrieve a user by their ID. `user_id_type` denotes which endpoint to try as there are
         several different ids that can pull the same user record from Canvas.
@@ -2133,10 +2133,10 @@ class Course(CanvasObject):
             user_id = obj_or_id(user, "user", (User,))
             uri = "courses/{}/users/{}".format(self.id, user_id)
 
-        response = self._requester.request("GET", uri, _kwargs=combine_kwargs(**kwargs))
-        return User(self._requester, response.json())
+        response = await self._requester.request("GET", uri, _kwargs=combine_kwargs(**kwargs))
+        return User(self._requester, await response.json())
 
-    def get_user_in_a_course_level_assignment_data(self, user, **kwargs):
+    async def get_user_in_a_course_level_assignment_data(self, user, **kwargs):
         """
         Return a list of assignments for the course sorted by due date
 
@@ -2152,15 +2152,15 @@ class Course(CanvasObject):
 
         user_id = obj_or_id(user, "user", (User,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/analytics/users/{}/assignments".format(self.id, user_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json()
+        return await response.json()
 
-    def get_user_in_a_course_level_messaging_data(self, user, **kwargs):
+    async def get_user_in_a_course_level_messaging_data(self, user, **kwargs):
         """
         Return messaging hits grouped by day through the entire history of the course
 
@@ -2176,15 +2176,15 @@ class Course(CanvasObject):
 
         user_id = obj_or_id(user, "user", (User,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/analytics/users/{}/communication".format(self.id, user_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json()
+        return await response.json()
 
-    def get_user_in_a_course_level_participation_data(self, user, **kwargs):
+    async def get_user_in_a_course_level_participation_data(self, user, **kwargs):
         """
         Return page view hits grouped by hour and participation details through course's history
 
@@ -2200,13 +2200,13 @@ class Course(CanvasObject):
 
         user_id = obj_or_id(user, "user", (User,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/analytics/users/{}/activity".format(self.id, user_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json()
+        return await response.json()
 
     def get_users(self, **kwargs):
         """
@@ -2228,7 +2228,7 @@ class Course(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def import_outcome(self, attachment, **kwargs):
+    async def import_outcome(self, attachment, **kwargs):
         """
         Import outcome into canvas.
 
@@ -2244,14 +2244,14 @@ class Course(CanvasObject):
         attachment, is_path = file_or_path(attachment)
 
         try:
-            response = self._requester.request(
+            response = await self._requester.request(
                 "POST",
                 "courses/{}/outcome_imports".format(self.id),
                 file={"attachment": attachment},
                 _kwargs=combine_kwargs(**kwargs),
             )
 
-            response_json = response.json()
+            response_json = await response.json()
             response_json.update({"course_id": self.id})
 
             return OutcomeImport(self._requester, response_json)
@@ -2277,10 +2277,10 @@ class Course(CanvasObject):
             "GET",
             "courses/{}/blueprint_subscriptions".format(self.id),
             {"course_id": self.id},
-            kwargs=combine_kwargs(**kwargs),
+            _kwargs=combine_kwargs(**kwargs),
         )
 
-    def preview_html(self, html, **kwargs):
+    async def preview_html(self, html, **kwargs):
         """
         Preview HTML content processed for this course.
 
@@ -2293,14 +2293,14 @@ class Course(CanvasObject):
         """
         kwargs["html"] = html
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/preview_html".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json().get("html", "")
+        return (await response.json()).get("html", "")
 
-    def remove_usage_rights(self, **kwargs):
+    async def remove_usage_rights(self, **kwargs):
         """
         Removes the usage rights for specified files that are under the current course scope
 
@@ -2310,15 +2310,15 @@ class Course(CanvasObject):
         :rtype: dict
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "courses/{}/usage_rights".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json()
+        return await response.json()
 
-    def reorder_pinned_topics(self, order, **kwargs):
+    async def reorder_pinned_topics(self, order, **kwargs):
         """
         Puts the pinned discussion topics in the specified order.
         All pinned topics should be included.
@@ -2343,15 +2343,15 @@ class Course(CanvasObject):
 
         kwargs["order"] = order
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/discussion_topics/reorder".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json().get("reorder")
+        return (await response.json()).get("reorder")
 
-    def reset(self, **kwargs):
+    async def reset(self, **kwargs):
         """
         Delete the current course and create a new equivalent course
         with no content, but all sections and users moved over.
@@ -2361,12 +2361,12 @@ class Course(CanvasObject):
 
         :rtype: :class:`canvasaio.course.Course`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/reset_content".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Course(self._requester, response.json())
+        return Course(self._requester, await response.json())
 
     def resolve_path(self, full_path=None, **kwargs):
         """
@@ -2401,7 +2401,7 @@ class Course(CanvasObject):
                 _kwargs=combine_kwargs(**kwargs),
             )
 
-    def set_quiz_extensions(self, quiz_extensions, **kwargs):
+    async def set_quiz_extensions(self, quiz_extensions, **kwargs):
         """
         Set extensions for student all quiz submissions in a course.
 
@@ -2445,17 +2445,17 @@ class Course(CanvasObject):
 
         kwargs["quiz_extensions"] = quiz_extensions
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/quiz_extensions".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        extension_list = response.json()["quiz_extensions"]
+        extension_list = (await response.json())["quiz_extensions"]
         return [
             QuizExtension(self._requester, extension) for extension in extension_list
         ]
 
-    def set_usage_rights(self, **kwargs):
+    async def set_usage_rights(self, **kwargs):
         """
         Changes the usage rights for specified files that are under the current course scope
 
@@ -2465,15 +2465,15 @@ class Course(CanvasObject):
         :rtype: :class:`canvasaio.usage_rights.UsageRights`
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/usage_rights".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return UsageRights(self._requester, response.json())
+        return UsageRights(self._requester, await response.json())
 
-    def show_front_page(self, **kwargs):
+    async def show_front_page(self, **kwargs):
         """
         Retrieve the content of the front page.
 
@@ -2482,17 +2482,17 @@ class Course(CanvasObject):
 
         :rtype: :class:`canvasaio.course.Course`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/front_page".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        page_json = response.json()
+        page_json = await response.json()
         page_json.update({"course_id": self.id})
 
         return Page(self._requester, page_json)
 
-    def submissions_bulk_update(self, **kwargs):
+    async def submissions_bulk_update(self, **kwargs):
         """
         Update the grading and comments on multiple student's assignment
         submissions in an asynchronous job.
@@ -2502,14 +2502,14 @@ class Course(CanvasObject):
 
         :rtype: :class:`canvasaio.progress.Progress`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/submissions/update_grades".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Progress(self._requester, response.json())
+        return Progress(self._requester, await response.json())
 
-    def update(self, **kwargs):
+    async def update(self, **kwargs):
         """
         Update this course.
 
@@ -2519,14 +2519,15 @@ class Course(CanvasObject):
         :returns: `True` if the course was updated, `False` otherwise.
         :rtype: `bool`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT", "courses/{}".format(self.id), _kwargs=combine_kwargs(**kwargs)
         )
 
-        if response.json().get("name"):
-            super(Course, self).set_attributes(response.json())
+        response_json = await response.json()
+        if response_json.get("name"):
+            super(Course, self).set_attributes(response_json)
 
-        return response.json().get("name")
+        return response_json.get("name")
 
     def update_assignment_overrides(self, assignment_overrides, **kwargs):
         """
@@ -2556,7 +2557,7 @@ class Course(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def update_settings(self, **kwargs):
+    async def update_settings(self, **kwargs):
         """
         Update a course's settings.
 
@@ -2565,10 +2566,10 @@ class Course(CanvasObject):
 
         :rtype: dict
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT", "courses/{}/settings".format(self.id), **kwargs
         )
-        return response.json()
+        return await response.json()
 
     def upload(self, file, **kwargs):
         """
@@ -2592,7 +2593,7 @@ class CourseNickname(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.nickname, self.course_id)
 
-    def remove(self, **kwargs):
+    async def remove(self, **kwargs):
         """
         Remove the nickname for the given course. Subsequent course API
         calls will return the actual name for the course.
@@ -2602,12 +2603,12 @@ class CourseNickname(CanvasObject):
 
         :rtype: :class:`canvasaio.course.CourseNickname`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "users/self/course_nicknames/{}".format(self.course_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return CourseNickname(self._requester, response.json())
+        return CourseNickname(self._requester, await response.json())
 
 
 class LatePolicy(CanvasObject):

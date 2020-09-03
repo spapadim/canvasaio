@@ -206,7 +206,7 @@ class Assignment(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def set_extensions(self, assignment_extensions, **kwargs):
+    async def set_extensions(self, assignment_extensions, **kwargs):
         """
         Set extensions for student assignment submissions
 
@@ -244,12 +244,12 @@ class Assignment(CanvasObject):
                 "Dictionaries in `assignment_extensions` must contain key `user_id`"
             )
         kwargs["assignment_extensions"] = assignment_extensions
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/assignments/{}/extensions".format(self.course_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        extension_list = response.json()["assignment_extensions"]
+        extension_list = (await response.json())["assignment_extensions"]
         return [
             AssignmentExtension(self._requester, extension)
             for extension in extension_list

@@ -1,7 +1,10 @@
 {
 	"get_custom_columns": {
 		"method": "GET",
-		"endpoint": "courses/1/custom_gradebook_columns",
+		"endpoint": {
+			"url": "courses/1/custom_gradebook_columns",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -108,6 +111,7 @@
 	},
 	"delete_external_feed": {
 		"method": "DELETE",
+		"repeat": true,
 		"endpoint": "courses/1/external_feeds/1",
 		"data": {
 			"id": 1,
@@ -118,6 +122,7 @@
 	},
 	"enroll_user": {
 		"method": "POST",
+		"repeat": true,
 		"endpoint": "courses/1/enrollments",
 		"data": {
 			"id": 1,
@@ -146,7 +151,10 @@
 	},
 	"get_all_assignments": {
 		"method": "GET",
-		"endpoint": "courses/1/assignments",
+		"endpoint": {
+			"url": "courses/1/assignments",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -187,6 +195,7 @@
 	},
 	"get_assignment_by_id": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "courses/1/assignments/1",
 		"data": {
 			"id": 1,
@@ -198,7 +207,11 @@
 	},
 	"get_assignments_for_group": {
 		"method": "GET",
-		"endpoint": "courses/1/assignment_groups/5/assignments",
+		"repeat": true,
+		"endpoint": {
+			"url": "courses/1/assignment_groups/5/assignments",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 3,
@@ -239,8 +252,8 @@
 	},
 	"get_by_id": {
 		"method": "GET",
-		"endpoint": "courses/1",
 		"repeat": true,
+		"endpoint": "courses/1",
 		"data": {
 			"id": 1,
 			"course_code": "TST1234",
@@ -355,7 +368,10 @@
 	},
 	"get_external_tools": {
 		"method": "GET",
-		"endpoint": "courses/1/external_tools",
+		"endpoint": {
+			"url": "courses/1/external_tools",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -408,6 +424,7 @@
 	},
 	"get_folder": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "courses/1/folders/1",
 		"data": {
 			"id": 1,
@@ -454,6 +471,7 @@
 	},
 	"get_quiz": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "courses/1/quizzes/1",
 		"data": {
 			"id": 1
@@ -462,7 +480,10 @@
 	},
 	"get_quiz_overrides": {
 		"method": "GET",
-		"endpoint": "courses/1/quizzes/assignment_overrides",
+		"endpoint": {
+			"url": "courses/1/quizzes/assignment_overrides",
+			"ignore_query": true
+		},
 		"data": {
 			"quiz_assignment_overrides": [{
 				"quiz_id": "1",
@@ -506,7 +527,10 @@
 	},
 	"get_recent_students": {
 		"method": "GET",
-		"endpoint": "courses/1/recent_students",
+		"endpoint": {
+			"url": "courses/1/recent_students",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -554,7 +578,10 @@
 	},
 	"get_rubric_multiple": {
 		"method": "GET",
-		"endpoint": "courses/1/rubrics",
+		"endpoint": {
+			"url": "courses/1/rubrics",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -583,6 +610,7 @@
 	},
 	"get_section":{
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "courses/1/sections/1",
 		"data": {
 			"id": 1,
@@ -593,7 +621,10 @@
 	},
 	"get_sections": {
 		"method": "GET",
-		"endpoint": "courses/1/sections",
+		"endpoint": {
+			"url": "courses/1/sections",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -630,7 +661,10 @@
 	},
 	"get_submission_history": {
 		"method": "GET",
-		"endpoint": "courses/1/gradebook_history/08-23-2019/graders/1/assignments/1/submissions",
+		"endpoint": {
+			"url": "courses/1/gradebook_history/08-23-2019/graders/1/assignments/1/submissions",
+			"ignore_query": true
+		},
 		"data": [
 			{
                 "submission_id": 4,
@@ -644,7 +678,10 @@
     },
 	"get_uncollated_submissions": {
 		"method": "GET",
-		"endpoint": "courses/1/gradebook_history/feed",
+		"endpoint": {
+			"url": "courses/1/gradebook_history/feed",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -662,6 +699,7 @@
 	},
 	"get_user": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "courses/1/users/1",
 		"data": {
 			"id": 1,
@@ -681,7 +719,10 @@
 	},
 	"get_users": {
 		"method": "GET",
-		"endpoint": "courses/1/search_users",
+		"endpoint": {
+			"url": "courses/1/search_users",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -714,7 +755,10 @@
 	},
 	"list_blueprint_subscriptions": {
 		"method": "GET",
-		"endpoint": "courses/1/blueprint_subscriptions",
+		"endpoint": {
+			"url": "courses/1/blueprint_subscriptions",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 10,
@@ -731,7 +775,10 @@
 	},
 	"list_enrollments": {
 		"method": "GET",
-		"endpoint": "courses/1/enrollments",
+		"endpoint": {
+			"url": "courses/1/enrollments",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -772,7 +819,10 @@
 	},
 	"list_external_feeds": {
 		"method": "GET",
-		"endpoint": "courses/1/external_feeds",
+		"endpoint": {
+			"url": "courses/1/external_feeds",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -789,7 +839,10 @@
 	},
 	"list_course_files": {
 		"method": "GET",
-		"endpoint": "courses/1/files",
+		"endpoint": {
+			"url": "courses/1/files",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -830,7 +883,10 @@
 	},
 	"list_folders": {
 		"method": "GET",
-		"endpoint": "courses/1/folders",
+		"endpoint": {
+			"url": "courses/1/folders",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 2,
@@ -851,7 +907,10 @@
 	},
 	"list_quizzes": {
 		"method": "GET",
-		"endpoint": "courses/1/quizzes",
+		"endpoint": {
+			"url": "courses/1/quizzes",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -1031,7 +1090,10 @@
 	},
 	"list_modules": {
 		"method": "GET",
-		"endpoint": "courses/1/modules",
+		"endpoint": {
+			"url": "courses/1/modules",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -1086,6 +1148,7 @@
 	},
 	"get_module_by_id": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "courses/1/modules/1",
 		"data": {
 			"id": 1,
@@ -1128,7 +1191,10 @@
 	},
 	"get_pages": {
 		"method": "GET",
-		"endpoint": "courses/1/pages",
+		"endpoint": {
+			"url": "courses/1/pages",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -1214,7 +1280,10 @@
 	},
 	"list_groups_context": {
 		"method": "GET",
-		"endpoint": "courses/1/groups",
+		"endpoint": {
+			"url": "courses/1/groups",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -1263,7 +1332,10 @@
 	},
 	"list_group_categories": {
 		"method": "GET",
-		"endpoint": "courses/1/group_categories",
+		"endpoint": {
+			"url": "courses/1/group_categories",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 2,
@@ -1292,6 +1364,7 @@
 	},
 	"get_discussion_topic": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "courses/1/discussion_topics/1",
 		"data":
 			{
@@ -1302,6 +1375,7 @@
 	},
 	"get_file": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "courses/1/files/1",
 		"data": {
 			"id": 1,
@@ -1312,6 +1386,7 @@
 	},
 	"get_full_discussion_topic": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "courses/1/discussion_topics/1/view",
 		"data": {
 			"id": 1,
@@ -1330,7 +1405,10 @@
 	},
 	"get_discussion_topics": {
 		"method": "GET",
-		"endpoint": "courses/1/discussion_topics",
+		"endpoint": {
+			"url": "courses/1/discussion_topics",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -1363,7 +1441,10 @@
 	},
 	"get_collaborations": {
 		"method": "GET",
-		"endpoint": "courses/1/collaborations",
+		"endpoint": {
+			"url": "courses/1/collaborations",
+			"ignore_query": true
+		},
 		"data": {
 			"collaborations": [
 				{
@@ -1492,6 +1573,7 @@
 	},
 	"get_user_in_a_course_level_participation_data": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "courses/1/analytics/users/1/activity",
 		"data": [
 			{
@@ -1515,6 +1597,7 @@
 	},
 	"get_user_in_a_course_level_assignment_data": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "courses/1/analytics/users/1/assignments",
 		"data": [
 			{
@@ -1561,6 +1644,7 @@
 	},
 	"get_user_in_a_course_level_messaging_data": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "courses/1/analytics/users/1/communication",
 		"data": [
 			{
@@ -1576,7 +1660,10 @@
 	},
 	"list_tabs": {
 		"method": "GET",
-		"endpoint": "courses/1/tabs",
+		"endpoint": {
+			"url": "courses/1/tabs",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": "home",
@@ -1599,7 +1686,10 @@
 	},
 	"list_multiple_submissions": {
 		"method": "GET",
-		"endpoint": "courses/1/students/submissions",
+		"endpoint": {
+			"url": "courses/1/students/submissions",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -1620,7 +1710,10 @@
 	},
 	"list_multiple_submissions_grouped": {
 		"method": "GET",
-		"endpoint": "courses/1/students/submissions",
+		"endpoint": {
+			"url": "courses/1/students/submissions",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"user_id": 1,
@@ -1739,7 +1832,10 @@
 	},
 	"get_grading_periods": {
 		"method": "GET",
-		"endpoint": "courses/1/grading_periods",
+		"endpoint": {
+			"url": "courses/1/grading_periods",
+			"ignore_query": true
+		},
 		"data": {
 			"grading_periods": [
 				{
@@ -1772,7 +1868,10 @@
 	},
 	"get_grading_standards": {
 		"method": "GET",
-		"endpoint": "courses/1/grading_standards",
+		"endpoint": {
+			"url": "courses/1/grading_standards",
+			"ignore_query": true
+		},
 		"data": [
 			{
 			"title": "Grading Standard 1",
@@ -1800,7 +1899,10 @@
 	},
 	"get_gradebook_history_dates": {
 		"method": "GET",
-		"endpoint": "courses/1/gradebook_history/days",
+		"endpoint": {
+			"url": "courses/1/gradebook_history/days",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"date": "2018-08-09",
@@ -1837,7 +1939,10 @@
 	},
 	"get_gradebook_history_details": {
 		"method": "GET",
-		"endpoint": "courses/1/gradebook_history/03-26-2019",
+		"endpoint": {
+			"url": "courses/1/gradebook_history/03-26-2019",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 27,
@@ -1890,7 +1995,10 @@
 	},
 	"get_content_migration_multiple": {
 		"method": "GET",
-		"endpoint": "courses/1/content_migrations",
+		"endpoint": {
+			"url": "courses/1/content_migrations",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -1907,7 +2015,10 @@
 	},
 	"get_migration_systems_multiple": {
 		"method": "GET",
-		"endpoint": "courses/1/content_migrations/migrators",
+		"endpoint": {
+			"url": "courses/1/content_migrations/migrators",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"type": "dummy_importer",
@@ -1965,7 +2076,10 @@
 	},
 	"multiple_content_exports": {
 		"method": "GET",
-		"endpoint": "courses/1/content_exports",
+		"endpoint": {
+			"url": "courses/1/content_exports",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"user_id": 1,
@@ -2002,7 +2116,10 @@
 	},
 	"get_features": {
 		"method": "GET",
-		"endpoint": "courses/1/features",
+		"endpoint": {
+			"url": "courses/1/features",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"name": "epub_export",
@@ -2019,7 +2136,10 @@
 	},
 	"get_enabled_features": {
 		"method": "GET",
-		"endpoint": "courses/1/features/enabled",
+		"endpoint": {
+			"url": "courses/1/features/enabled",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"name": "feature_test",
@@ -2186,7 +2306,10 @@
 	},
 	"get_licenses": {
 		"method": "GET",
-		"endpoint": "courses/1/content_licenses",
+		"endpoint": {
+			"url": "courses/1/content_licenses",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": "private",
@@ -2203,7 +2326,10 @@
 	},
     "resolve_path": {
 		"method": "GET",
-		"endpoint": "courses/1/folders/by_path/Folder_Level_1/Folder_Level_2/Folder_Level_3",
+		"endpoint": {
+			"url": "courses/1/folders/by_path/Folder_Level_1/Folder_Level_2/Folder_Level_3",
+			"ignore_query": true
+		},
 		"data": [
             {
 				"id": 2,
@@ -2238,7 +2364,10 @@
 	},
     "resolve_path_null": {
 		"method": "GET",
-		"endpoint": "courses/1/folders/by_path",
+		"endpoint": {
+			"url": "courses/1/folders/by_path",
+			"ignore_query": true
+		},
 		"data": [
             {
 				"id": 2,

@@ -220,7 +220,11 @@
     },
     "course_get_outcome_group": {
         "method": "GET",
-        "endpoint": "courses/1/outcome_groups/1",
+        "repeat": true,
+        "endpoint": {
+            "url": "courses/1/outcome_groups/1",
+            "ignore_query": true
+        },
         "data": {
             "id": 1,
             "url": "/api/v1/courses/1/outcome_groups/1",
@@ -238,7 +242,10 @@
     },
     "course_outcome_groups_in_context": {
         "method": "GET",
-        "endpoint": "courses/1/outcome_groups",
+        "endpoint": {
+            "url": "courses/1/outcome_groups",
+            "ignore_query": true
+        },
         "data":[
             {
                 "id": 1,
@@ -276,7 +283,10 @@
     },
     "course_outcome_links_in_context": {
         "method": "GET",
-        "endpoint": "courses/1/outcome_group_links",
+        "endpoint": {
+            "url": "courses/1/outcome_group_links",
+            "ignore_query": true
+        },
         "data": [
             {
                 "context_id": 1,

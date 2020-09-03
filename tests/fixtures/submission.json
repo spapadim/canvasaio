@@ -41,6 +41,7 @@
 	},
 	"get_by_id_course": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "courses/1/assignments/1/submissions/1",
 		"data": {
 			"id": 1,

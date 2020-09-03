@@ -30,7 +30,7 @@ class Uploader(object):
         self.file = file
         self.kwargs = kwargs
 
-    def request_upload_token(self, file):
+    async def request_upload_token(self, file):
         """
         Request an upload token.
 
@@ -42,13 +42,13 @@ class Uploader(object):
         self.kwargs["name"] = os.path.basename(file.name)
         self.kwargs["size"] = os.fstat(file.fileno()).st_size
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST", self.url, _kwargs=combine_kwargs(**self.kwargs)
         )
 
-        return self.upload(response, file)
+        return await self.upload(response, file)
 
-    def start(self):
+    async def start(self):
         """
         Kick off uploading process. Handles open/closing file if a path
         is passed.
@@ -60,11 +60,11 @@ class Uploader(object):
         """
         if self._using_filename:
             with open(self.file, "rb") as file:
-                return self.request_upload_token(file)
+                return await self.request_upload_token(file)
         else:
-            return self.request_upload_token(self.file)
+            return await self.request_upload_token(self.file)
 
-    def upload(self, response, file):
+    async def upload(self, response, file):
         """
         Upload the file.
 
@@ -75,7 +75,7 @@ class Uploader(object):
             and the JSON response from the API.
         :rtype: tuple
         """
-        response = response.json()
+        response = await response.json()
         if not response.get("upload_url"):
             raise ValueError("Bad API response. No upload_url.")
 
@@ -84,7 +84,7 @@ class Uploader(object):
 
         kwargs = response.get("upload_params")
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             use_auth=False,
             _url=response.get("upload_url"),
@@ -93,6 +93,6 @@ class Uploader(object):
         )
 
         # remove `while(1);` that may appear at the top of a response
-        response_json = json.loads(response.text.lstrip("while(1);"))
+        response_json = json.loads((await response.text()).lstrip("while(1);"))
 
         return ("url" in response_json, response_json)

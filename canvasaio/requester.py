@@ -93,7 +93,8 @@ class Requester(object):
         :param data: The data to send with this request.
         :type data: dict
         """
-        return await self._session.patch(url, headers=headers, data=data)
+        session = await self._session
+        return await session.patch(url, headers=headers, data=data)
 
     async def _post_request(self, url, headers, data=None, json=False):
         """

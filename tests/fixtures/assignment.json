@@ -20,7 +20,10 @@
 	},
 	"batch_get_assignment_overrides": {
 		"method": "GET",
-		"endpoint": "courses/1/assignments/overrides",
+		"endpoint": {
+			"url": "courses/1/assignments/overrides",
+			"ignore_query": true
+		},
 		"data": [{
 			"id": 1,
 			"assignment_id": 1,
@@ -154,6 +157,7 @@
 	},
 	"get_assignment_group": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "courses/1/assignment_groups/5",
 		"data": {
 			"id": 5,
@@ -164,7 +168,10 @@
 	},
 	"list_assignment_groups": {
 		"method": "GET",
-		"endpoint": "courses/1/assignment_groups",
+		"endpoint": {
+			"url": "courses/1/assignment_groups",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 5,

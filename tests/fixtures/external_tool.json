@@ -64,6 +64,7 @@
 	},
 	"get_by_id_course": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "courses/1/external_tools/1",
 		"data": {
 			"id": 1,
