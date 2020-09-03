@@ -1,22 +1,22 @@
 import unittest
 import uuid
 
-import requests_mock
+from aioresponses import aioresponses
 
 from canvasaio import Canvas
 from canvasaio.peer_review import PeerReview
 from canvasaio.submission import GroupedSubmission, Submission
 from tests import settings
-from tests.util import cleanup_file, register_uris
+from tests.util import cleanup_file, register_uris, aioresponse_mock
 
 
-@requests_mock.Mocker()
-class TestSubmission(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestSubmission(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
 
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             register_uris(
                 {
                     "course": ["get_by_id", "get_assignment_by_id"],
@@ -26,9 +26,12 @@ class TestSubmission(unittest.TestCase):
                 m,
             )
 
-            self.course = self.canvas.get_course(1)
-            self.assignment = self.course.get_assignment(1)
-            self.submission = self.assignment.get_submission(1)
+            self.course = await self.canvas.get_course(1)
+            self.assignment = await self.course.get_assignment(1)
+            self.submission = await self.assignment.get_submission(1)
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):
@@ -36,63 +39,63 @@ class TestSubmission(unittest.TestCase):
         self.assertIsInstance(string, str)
 
     # create_submission_peer_review()
-    def test_create_submission_peer_review(self, m):
+    async def test_create_submission_peer_review(self, m):
         register_uris({"submission": ["create_submission_peer_review"]}, m)
 
-        created_peer_review = self.submission.create_submission_peer_review(1)
+        created_peer_review = await self.submission.create_submission_peer_review(1)
 
         self.assertIsInstance(created_peer_review, PeerReview)
         self.assertEqual(created_peer_review.user_id, 7)
 
     # delete_submission_peer_review()
-    def test_delete_submission_peer_review(self, m):
+    async def test_delete_submission_peer_review(self, m):
         register_uris({"submission": ["delete_submission_peer_review"]}, m)
 
-        deleted_peer_review = self.submission.delete_submission_peer_review(1)
+        deleted_peer_review = await self.submission.delete_submission_peer_review(1)
 
         self.assertIsInstance(deleted_peer_review, PeerReview)
         self.assertEqual(deleted_peer_review.user_id, 7)
 
     # edit()
-    def test_edit(self, m):
+    async def test_edit(self, m):
         register_uris({"submission": ["edit"]}, m)
 
         self.assertFalse(hasattr(self.submission, "excused"))
 
-        self.submission.edit(submission={"excuse": True})
+        await self.submission.edit(submission={"excuse": True})
 
         self.assertIsInstance(self.submission, Submission)
         self.assertTrue(hasattr(self.submission, "excused"))
         self.assertTrue(self.submission.excused)
 
     # get_submission_peer_reviews()
-    def test_get_submission_peer_reviews(self, m):
+    async def test_get_submission_peer_reviews(self, m):
         register_uris({"submission": ["list_submission_peer_reviews"]}, m)
 
         submission_peer_reviews = self.submission.get_submission_peer_reviews()
         submission_peer_review_list = [
-            peer_review for peer_review in submission_peer_reviews
+            peer_review async for peer_review in submission_peer_reviews
         ]
 
         self.assertEqual(len(submission_peer_review_list), 2)
         self.assertIsInstance(submission_peer_review_list[0], PeerReview)
 
     # mark_read()
-    def test_mark_read(self, m):
+    async def test_mark_read(self, m):
         register_uris({"course": ["mark_submission_as_read"]}, m)
 
-        marked_read = self.submission.mark_read()
+        marked_read = await self.submission.mark_read()
         self.assertTrue(marked_read)
 
     # mark_unread()
-    def test_mark_unread(self, m):
+    async def test_mark_unread(self, m):
         register_uris({"course": ["mark_submission_as_unread"]}, m)
 
-        marked_unread = self.submission.mark_unread()
+        marked_unread = await self.submission.mark_unread()
         self.assertTrue(marked_unread)
 
     # upload_comment()
-    def test_upload_comment(self, m):
+    async def test_upload_comment(self, m):
         register_uris(
             {"submission": ["upload_comment", "upload_comment_final", "edit"]}, m
         )
@@ -101,7 +104,7 @@ class TestSubmission(unittest.TestCase):
 
         try:
             with open(filename, "w+") as file:
-                response = self.submission.upload_comment(file)
+                response = await self.submission.upload_comment(file)
 
             self.assertTrue(response[0])
             self.assertIsInstance(response[1], dict)
@@ -110,7 +113,7 @@ class TestSubmission(unittest.TestCase):
             cleanup_file(filename)
 
 
-class TestGroupedSubmission(unittest.TestCase):
+class TestGroupedSubmission(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
@@ -129,6 +132,9 @@ class TestGroupedSubmission(unittest.TestCase):
                 ],
             },
         )
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __init__()
     def test__init__no_submission_key(self):

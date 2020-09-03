@@ -9,7 +9,7 @@ class Submission(CanvasObject):
     def __str__(self):
         return "{}-{}".format(self.assignment_id, self.user_id)
 
-    def create_submission_peer_review(self, user, **kwargs):
+    async def create_submission_peer_review(self, user, **kwargs):
         """
         Create a peer review for this submission.
 
@@ -26,7 +26,7 @@ class Submission(CanvasObject):
 
         user_id = obj_or_id(user, "user", (User,))
         kwargs["user_id"] = user_id
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/assignments/{}/submissions/{}/peer_reviews".format(
                 self.course_id, self.assignment_id, self.id
@@ -34,9 +34,9 @@ class Submission(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return PeerReview(self._requester, response.json())
+        return PeerReview(self._requester, await response.json())
 
-    def delete_submission_peer_review(self, user, **kwargs):
+    async def delete_submission_peer_review(self, user, **kwargs):
         """
         Delete a peer review for this submission.
 
@@ -53,16 +53,16 @@ class Submission(CanvasObject):
 
         user_id = obj_or_id(user, "user", (User,))
         kwargs["user_id"] = user_id
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "courses/{}/assignments/{}/submissions/{}/peer_reviews".format(
                 self.course_id, self.assignment_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return PeerReview(self._requester, response.json())
+        return PeerReview(self._requester, await response.json())
 
-    def edit(self, **kwargs):
+    async def edit(self, **kwargs):
         """
         Comment on and/or update the grading for a student's assignment submission.
 
@@ -71,14 +71,14 @@ class Submission(CanvasObject):
 
         :rtype: :class:`canvasaio.submission.Submission`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/assignments/{}/submissions/{}".format(
                 self.course_id, self.assignment_id, self.user_id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update(course_id=self.course_id)
 
         super(Submission, self).set_attributes(response_json)
@@ -105,7 +105,7 @@ class Submission(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def mark_read(self, **kwargs):
+    async def mark_read(self, **kwargs):
         """
         Mark submission as read. No request fields are necessary.
 
@@ -116,15 +116,15 @@ class Submission(CanvasObject):
         :returns: True if successfully marked as read.
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/assignments/{}/submissions/{}/read".format(
                 self.course_id, self.assignment_id, self.user_id
             ),
         )
-        return response.status_code == 204
+        return response.status == 204
 
-    def mark_unread(self, **kwargs):
+    async def mark_unread(self, **kwargs):
         """
         Mark submission as unread. No request fields are necessary.
 
@@ -135,15 +135,15 @@ class Submission(CanvasObject):
         :returns: True if successfully marked as unread.
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "courses/{}/assignments/{}/submissions/{}/read".format(
                 self.course_id, self.assignment_id, self.user_id
             ),
         )
-        return response.status_code == 204
+        return response.status == 204
 
-    def upload_comment(self, file, **kwargs):
+    async def upload_comment(self, file, **kwargs):
         """
         Upload a file to attach to this submission as a comment.
 
@@ -157,7 +157,7 @@ class Submission(CanvasObject):
             and the JSON response from the API.
         :rtype: tuple
         """
-        response = Uploader(
+        response = await Uploader(
             self._requester,
             "courses/{}/assignments/{}/submissions/{}/comments/files".format(
                 self.course_id, self.assignment_id, self.user_id
@@ -167,7 +167,7 @@ class Submission(CanvasObject):
         ).start()
 
         if response[0]:
-            self.edit(comment={"file_ids": [response[1]["id"]]})
+            await self.edit(comment={"file_ids": [response[1]["id"]]})
         return response
 
 

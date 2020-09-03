@@ -87,7 +87,10 @@
 	},
 	"list_submission_peer_reviews": {
 		"method": "GET",
-		"endpoint": "courses/1/assignments/1/submissions/1/peer_reviews",
+		"endpoint": {
+			"url": "courses/1/assignments/1/submissions/1/peer_reviews",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"assessor_id": 23,
