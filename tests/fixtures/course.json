@@ -1744,7 +1744,10 @@
 	},
 	"list_gradeable_students": {
 		"method": "GET",
-		"endpoint": "courses/1/assignments/1/gradeable_students",
+		"endpoint": {
+			"url": "courses/1/assignments/1/gradeable_students",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,

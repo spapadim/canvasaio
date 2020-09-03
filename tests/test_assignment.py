@@ -167,39 +167,39 @@ class TestAssignment(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(hasattr(extension[1], "extra_attempts"))
         self.assertEqual(extension[1].extra_attempts, 2)
 
-    def test_set_extensions_not_list(self, m):
+    async def test_set_extensions_not_list(self, m):
         with self.assertRaises(ValueError):
-            self.assignment.set_extensions({"user_id": 3, "exrra_attempts": 2})
+            await self.assignment.set_extensions({"user_id": 3, "exrra_attempts": 2})
 
-    def test_set_extensions_empty_list(self, m):
+    async def test_set_extensions_empty_list(self, m):
         with self.assertRaises(ValueError):
-            self.assignment.set_extensions([])
+            await self.assignment.set_extensions([])
 
-    def test_set_extensions_non_dicts(self, m):
+    async def test_set_extensions_non_dicts(self, m):
         with self.assertRaises(ValueError):
-            self.assignment.set_extensions([("user_id", 1), ("extra_attempts", 2)])
+            await self.assignment.set_extensions([("user_id", 1), ("extra_attempts", 2)])
 
-    def test_set_extensions_missing_key(self, m):
+    async def test_set_extensions_missing_key(self, m):
         with self.assertRaises(RequiredFieldMissing):
-            self.assignment.set_extensions([{"extra_attempts": 3}])
+            await self.assignment.set_extensions([{"extra_attempts": 3}])
 
     # submit()
-    def test_submit(self, m):
+    async def test_submit(self, m):
         register_uris({"assignment": ["submit"]}, m)
 
         sub_type = "online_upload"
         sub_dict = {"submission_type": sub_type}
-        submission = self.assignment.submit(sub_dict)
+        submission = await self.assignment.submit(sub_dict)
 
         self.assertIsInstance(submission, Submission)
         self.assertTrue(hasattr(submission, "submission_type"))
         self.assertEqual(submission.submission_type, sub_type)
 
-    def test_submit_fail(self, m):
+    async def test_submit_fail(self, m):
         with self.assertRaises(RequiredFieldMissing):
-            self.assignment.submit({})
+            await self.assignment.submit({})
 
-    def test_submit_file(self, m):
+    async def test_submit_file(self, m):
         register_uris({"assignment": ["submit", "upload", "upload_final"]}, m)
 
         filename = "testfile_assignment_{}".format(uuid.uuid4().hex)
@@ -208,7 +208,7 @@ class TestAssignment(unittest.IsolatedAsyncioTestCase):
             with open(filename, "w+") as file:
                 sub_type = "online_upload"
                 sub_dict = {"submission_type": sub_type}
-                submission = self.assignment.submit(sub_dict, file)
+                submission = await self.assignment.submit(sub_dict, file)
 
             self.assertIsInstance(submission, Submission)
             self.assertTrue(hasattr(submission, "submission_type"))
@@ -217,15 +217,15 @@ class TestAssignment(unittest.IsolatedAsyncioTestCase):
         finally:
             cleanup_file(filename)
 
-    def test_submit_file_wrong_type(self, m):
+    async def test_submit_file_wrong_type(self, m):
         filename = "testfile_assignment_{}".format(uuid.uuid4().hex)
         sub_type = "online_text_entry"
         sub_dict = {"submission_type": sub_type}
 
         with self.assertRaises(ValueError):
-            self.assignment.submit(sub_dict, filename)
+            await self.assignment.submit(sub_dict, filename)
 
-    def test_submit_file_upload_failure(self, m):
+    async def test_submit_file_upload_failure(self, m):
         register_uris({"assignment": ["submit", "upload", "upload_fail"]}, m)
 
         filename = "testfile_assignment_{}".format(uuid.uuid4().hex)
@@ -235,7 +235,7 @@ class TestAssignment(unittest.IsolatedAsyncioTestCase):
                 sub_type = "online_upload"
                 sub_dict = {"submission_type": sub_type}
                 with self.assertRaises(CanvasException):
-                    self.assignment.submit(sub_dict, file)
+                    await self.assignment.submit(sub_dict, file)
         finally:
             cleanup_file(filename)
 
@@ -245,26 +245,26 @@ class TestAssignment(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(string, str)
 
     # submissions_bulk_update()
-    def test_submissions_bulk_update(self, m):
+    async def test_submissions_bulk_update(self, m):
         register_uris({"assignment": ["update_submissions"]}, m)
         register_uris({"progress": ["course_progress"]}, m)
-        progress = self.assignment.submissions_bulk_update(
+        progress = await self.assignment.submissions_bulk_update(
             grade_data={"1": {"posted_grade": 97}, "2": {"posted_grade": 98}}
         )
         self.assertIsInstance(progress, Progress)
         self.assertTrue(progress.context_type == "Course")
-        progress = progress.query()
+        progress = await progress.query()
         self.assertTrue(progress.context_type == "Course")
 
     # upload_to_submission()
-    def test_upload_to_submission_self(self, m):
+    async def test_upload_to_submission_self(self, m):
         register_uris({"assignment": ["upload", "upload_final"]}, m)
 
         filename = "testfile_assignment_{}".format(uuid.uuid4().hex)
 
         try:
             with open(filename, "w+") as file:
-                response = self.assignment.upload_to_submission(file)
+                response = await self.assignment.upload_to_submission(file)
 
             self.assertTrue(response[0])
             self.assertIsInstance(response[1], dict)
@@ -272,7 +272,7 @@ class TestAssignment(unittest.IsolatedAsyncioTestCase):
         finally:
             cleanup_file(filename)
 
-    def test_upload_to_submission_user(self, m):
+    async def test_upload_to_submission_user(self, m):
         register_uris({"assignment": ["upload_by_id", "upload_final"]}, m)
 
         filename = "testfile_assignment_{}".format(uuid.uuid4().hex)
@@ -281,7 +281,7 @@ class TestAssignment(unittest.IsolatedAsyncioTestCase):
 
         try:
             with open(filename, "w+") as file:
-                response = self.assignment.upload_to_submission(file, user_id)
+                response = await self.assignment.upload_to_submission(file, user_id)
 
             self.assertTrue(response[0])
             self.assertIsInstance(response[1], dict)
@@ -322,11 +322,11 @@ class TestAssignmentGroup(unittest.IsolatedAsyncioTestCase):
     async def asyncTearDown(self):
         await self.canvas.close()
     # edit()
-    def test_edit_assignment_group(self, m):
+    async def test_edit_assignment_group(self, m):
         register_uris({"assignment": ["edit_assignment_group"]}, m)
 
         name = "New Name"
-        edited_assignment_group = self.assignment_group.edit(
+        edited_assignment_group = await self.assignment_group.edit(
             assignment_group={"name": name}
         )
 
@@ -335,10 +335,10 @@ class TestAssignmentGroup(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(edited_assignment_group.name, name)
 
     # delete()
-    def test_delete_assignment_group(self, m):
+    async def test_delete_assignment_group(self, m):
         register_uris({"assignment": ["delete_assignment_group"]}, m)
 
-        deleted_assignment_group = self.assignment_group.delete()
+        deleted_assignment_group = await self.assignment_group.delete()
 
         self.assertIsInstance(deleted_assignment_group, AssignmentGroup)
         self.assertTrue(hasattr(deleted_assignment_group, "name"))
@@ -378,18 +378,18 @@ class TestAssignmentOverride(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(string, "Assignment Override 1 (1)")
 
     # delete()
-    def test_delete(self, m):
+    async def test_delete(self, m):
         register_uris({"assignment": ["delete_override"]}, m)
 
-        deleted = self.assignment_override.delete()
+        deleted = await self.assignment_override.delete()
         self.assertIsInstance(deleted, AssignmentOverride)
         self.assertEqual(deleted.id, self.assignment_override.id)
 
     # edit()
-    def test_edit(self, m):
+    async def test_edit(self, m):
         register_uris({"assignment": ["edit_override"]}, m)
 
-        edited = self.assignment_override.edit(
+        edited = await self.assignment_override.edit(
             assignment_override={
                 "title": "New Title",
                 "student_ids": self.assignment_override.student_ids,

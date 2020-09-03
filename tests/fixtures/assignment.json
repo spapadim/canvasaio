@@ -183,7 +183,10 @@
 	},
 	"list_assignment_overrides": {
 		"method": "GET",
-		"endpoint": "courses/1/assignments/1/overrides",
+		"endpoint": {
+			"url": "courses/1/assignments/1/overrides",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -232,7 +235,10 @@
 	},
 	"list_peer_reviews": {
 		"method": "GET",
-		"endpoint": "courses/1/assignments/1/peer_reviews",
+		"endpoint": {
+			"url": "courses/1/assignments/1/peer_reviews",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"assessor_id": 23,

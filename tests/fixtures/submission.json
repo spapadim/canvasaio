@@ -63,7 +63,10 @@
 	},
 	"list_submissions": {
 		"method": "GET",
-		"endpoint": "courses/1/assignments/1/submissions",
+		"endpoint": {
+			"url": "courses/1/assignments/1/submissions",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,

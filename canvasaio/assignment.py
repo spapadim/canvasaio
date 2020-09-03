@@ -23,7 +23,7 @@ class Assignment(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.name, self.id)
 
-    def create_override(self, **kwargs):
+    async def create_override(self, **kwargs):
         """
         Create an override for this assignment.
 
@@ -32,16 +32,16 @@ class Assignment(CanvasObject):
 
         :rtype: :class:`canvasaio.assignment.AssignmentOverride`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/assignments/{}/overrides".format(self.course_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update(course_id=self.course_id)
         return AssignmentOverride(self._requester, response_json)
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Delete this assignment.
 
@@ -50,14 +50,14 @@ class Assignment(CanvasObject):
 
         :rtype: :class:`canvasaio.assignment.Assignment`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "courses/{}/assignments/{}".format(self.course_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Assignment(self._requester, response.json())
+        return Assignment(self._requester, await response.json())
 
-    def edit(self, **kwargs):
+    async def edit(self, **kwargs):
         """
         Modify this assignment.
 
@@ -66,16 +66,17 @@ class Assignment(CanvasObject):
 
         :rtype: :class:`canvasaio.assignment.Assignment`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/assignments/{}".format(self.course_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        if "name" in response.json():
-            super(Assignment, self).set_attributes(response.json())
+        response_json = await response.json()
+        if "name" in response_json:
+            super(Assignment, self).set_attributes(response_json)
 
-        return Assignment(self._requester, response.json())
+        return Assignment(self._requester, response_json)
 
     def get_gradeable_students(self, **kwargs):
         """
@@ -98,7 +99,7 @@ class Assignment(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_override(self, override, **kwargs):
+    async def get_override(self, override, **kwargs):
         """
         Get a single assignment override with the given override id.
 
@@ -112,14 +113,14 @@ class Assignment(CanvasObject):
         """
         override_id = obj_or_id(override, "override", (AssignmentOverride,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/assignments/{}/overrides/{}".format(
                 self.course_id, self.id, override_id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update(course_id=self.course_id)
         return AssignmentOverride(self._requester, response_json)
 
@@ -161,7 +162,7 @@ class Assignment(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_submission(self, user, **kwargs):
+    async def get_submission(self, user, **kwargs):
         """
         Get a single submission, based on user id.
 
@@ -175,14 +176,14 @@ class Assignment(CanvasObject):
         """
         user_id = obj_or_id(user, "user", (User,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/assignments/{}/submissions/{}".format(
                 self.course_id, self.id, user_id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update(course_id=self.course_id)
 
         return Submission(self._requester, response_json)
@@ -255,7 +256,7 @@ class Assignment(CanvasObject):
             for extension in extension_list
         ]
 
-    def submissions_bulk_update(self, **kwargs):
+    async def submissions_bulk_update(self, **kwargs):
         """
         Update the grading and comments on multiple student's assignment
         submissions in an asynchronous job.
@@ -266,16 +267,16 @@ class Assignment(CanvasObject):
 
         :rtype: :class:`canvasaio.progress.Progress`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/assignments/{}/submissions/update_grades".format(
                 self.course_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Progress(self._requester, response.json())
+        return Progress(self._requester, await response.json())
 
-    def submit(self, submission, file=None, **kwargs):
+    async def submit(self, submission, file=None, **kwargs):
         """
         Makes a submission for an assignment.
 
@@ -303,23 +304,23 @@ class Assignment(CanvasObject):
                     "To upload a file, `submission['submission_type']` must be `online_upload`."
                 )
 
-            upload_response = self.upload_to_submission(file, **kwargs)
+            upload_response = await self.upload_to_submission(file, **kwargs)
             if upload_response[0]:
                 kwargs["submission"]["file_ids"] = [upload_response[1]["id"]]
             else:
                 raise CanvasException("File upload failed. Not submitting.")
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/assignments/{}/submissions".format(self.course_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update(course_id=self.course_id)
 
         return Submission(self._requester, response_json)
 
-    def upload_to_submission(self, file, user="self", **kwargs):
+    async def upload_to_submission(self, file, user="self", **kwargs):
         """
         Upload a file to a submission.
 
@@ -339,7 +340,7 @@ class Assignment(CanvasObject):
         """
         user_id = obj_or_id(user, "user", (User,))
 
-        return Uploader(
+        return await Uploader(
             self._requester,
             "courses/{}/assignments/{}/submissions/{}/files".format(
                 self.course_id, self.id, user_id
@@ -358,7 +359,7 @@ class AssignmentGroup(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.name, self.id)
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Delete this assignment.
 
@@ -367,14 +368,14 @@ class AssignmentGroup(CanvasObject):
 
         :rtype: :class:`canvasaio.assignment.AssignmentGroup`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "courses/{}/assignment_groups/{}".format(self.course_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return AssignmentGroup(self._requester, response.json())
+        return AssignmentGroup(self._requester, await response.json())
 
-    def edit(self, **kwargs):
+    async def edit(self, **kwargs):
         """
         Modify this assignment group.
 
@@ -383,23 +384,24 @@ class AssignmentGroup(CanvasObject):
 
         :rtype: :class:`canvasaio.assignment.AssignmentGroup`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/assignment_groups/{}".format(self.course_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        if "name" in response.json():
-            super(AssignmentGroup, self).set_attributes(response.json())
+        response_json = await response.json()
+        if "name" in response_json:
+            super(AssignmentGroup, self).set_attributes(response_json)
 
-        return AssignmentGroup(self._requester, response.json())
+        return AssignmentGroup(self._requester, response_json)
 
 
 class AssignmentOverride(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.title, self.id)
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Delete this assignment override.
 
@@ -409,7 +411,7 @@ class AssignmentOverride(CanvasObject):
         :returns: The previous content of the now-deleted assignment override.
         :rtype: :class:`canvasaio.assignment.AssignmentGroup`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "courses/{}/assignments/{}/overrides/{}".format(
                 self.course_id, self.assignment_id, self.id
@@ -417,12 +419,12 @@ class AssignmentOverride(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update(course_id=self.course_id)
 
         return AssignmentOverride(self._requester, response_json)
 
-    def edit(self, **kwargs):
+    async def edit(self, **kwargs):
         """
         Update this assignment override.
 
@@ -433,7 +435,7 @@ class AssignmentOverride(CanvasObject):
 
         :rtype: :class:`canvasaio.assignment.AssignmentOverride`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/assignments/{}/overrides/{}".format(
                 self.course_id, self.assignment_id, self.id
@@ -441,7 +443,7 @@ class AssignmentOverride(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update(course_id=self.course_id)
         if "title" in response_json:
             super(AssignmentOverride, self).set_attributes(response_json)
