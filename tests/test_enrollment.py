@@ -1,24 +1,27 @@
 import unittest
 
-import requests_mock
+from aioresponses import aioresponses
 
 from canvasaio.canvas import Canvas
 from canvasaio.enrollment import Enrollment
 from tests import settings
-from tests.util import register_uris
+from tests.util import register_uris, aioresponse_mock
 
 
-@requests_mock.Mocker()
-class TestEnrollment(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestEnrollment(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             requires = {"account": ["get_by_id"], "enrollment": ["get_by_id"]}
             register_uris(requires, m)
 
-            self.account = self.canvas.get_account(1)
-            self.enrollment = self.account.get_enrollment(1)
+            self.account = await self.canvas.get_account(1)
+            self.enrollment = await self.account.get_enrollment(1)
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):
@@ -26,21 +29,21 @@ class TestEnrollment(unittest.TestCase):
         self.assertIsInstance(string, str)
 
     # deactivate()
-    def test_deactivate(self, m):
+    async def test_deactivate(self, m):
         register_uris({"enrollment": ["deactivate"]}, m)
 
-        target_enrollment = self.enrollment.deactivate("conclude")
+        target_enrollment = await self.enrollment.deactivate("conclude")
 
         self.assertIsInstance(target_enrollment, Enrollment)
 
-    def test_deactivate_invalid_task(self, m):
+    async def test_deactivate_invalid_task(self, m):
         with self.assertRaises(ValueError):
-            self.enrollment.deactivate("finish")
+            await self.enrollment.deactivate("finish")
 
     # reactivate()
-    def test_reactivate(self, m):
+    async def test_reactivate(self, m):
         register_uris({"enrollment": ["reactivate"]}, m)
 
-        target_enrollment = self.enrollment.reactivate()
+        target_enrollment = await self.enrollment.reactivate()
 
         self.assertIsInstance(target_enrollment, Enrollment)

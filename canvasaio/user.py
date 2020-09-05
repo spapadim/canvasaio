@@ -14,7 +14,7 @@ class User(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.name, self.id)
 
-    def add_observee(self, observee_id, **kwargs):
+    async def add_observee(self, observee_id, **kwargs):
         """
         Registers a user as being observed by the given user.
 
@@ -26,14 +26,14 @@ class User(CanvasObject):
         :rtype: :class: `canvasaio.user.User`
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "users/{}/observees/{}".format(self.id, observee_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return User(self._requester, response.json())
+        return User(self._requester, await response.json())
 
-    def add_observee_with_credentials(self, **kwargs):
+    async def add_observee_with_credentials(self, **kwargs):
         """
         Register the given user to observe another user, given the observee's credentials.
 
@@ -43,14 +43,14 @@ class User(CanvasObject):
         :rtype: :class:`canvasaio.user.User`
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "users/{}/observees".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return User(self._requester, response.json())
+        return User(self._requester, await response.json())
 
-    def create_communication_channel(self, **kwargs):
+    async def create_communication_channel(self, **kwargs):
         """
         Create a communication channel for this user
 
@@ -59,15 +59,15 @@ class User(CanvasObject):
 
         :rtype: :class:`canvasaio.communication_channel.CommunicationChannel`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "users/{}/communication_channels".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return CommunicationChannel(self._requester, response.json())
+        return CommunicationChannel(self._requester, await response.json())
 
-    def create_content_migration(self, migration_type, **kwargs):
+    async def create_content_migration(self, migration_type, **kwargs):
         """
         Create a content migration.
 
@@ -88,18 +88,18 @@ class User(CanvasObject):
         else:
             raise TypeError("Parameter migration_type must be of type Migrator or str")
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "users/{}/content_migrations".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"user_id": self.id})
 
         return ContentMigration(self._requester, response_json)
 
-    def create_folder(self, name, **kwargs):
+    async def create_folder(self, name, **kwargs):
         """
         Creates a folder in this user.
 
@@ -110,15 +110,15 @@ class User(CanvasObject):
         :type name: str
         :rtype: :class:`canvasaio.folder.Folder`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "users/{}/folders".format(self.id),
             name=name,
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Folder(self._requester, response.json())
+        return Folder(self._requester, await response.json())
 
-    def edit(self, **kwargs):
+    async def edit(self, **kwargs):
         """
         Modify this user's information.
 
@@ -127,13 +127,13 @@ class User(CanvasObject):
 
         :rtype: :class:`canvasaio.user.User`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT", "users/{}".format(self.id), _kwargs=combine_kwargs(**kwargs)
         )
-        super(User, self).set_attributes(response.json())
+        super(User, self).set_attributes(await response.json())
         return self
 
-    def export_content(self, export_type, **kwargs):
+    async def export_content(self, export_type, **kwargs):
         """
         Begin a content export job for a user.
 
@@ -149,12 +149,12 @@ class User(CanvasObject):
 
         kwargs["export_type"] = export_type
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "users/{}/content_exports".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return ContentExport(self._requester, response.json())
+        return ContentExport(self._requester, await response.json())
 
     def get_assignments(self, course, **kwargs):
         """
@@ -262,7 +262,7 @@ class User(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_color(self, asset_string, **kwargs):
+    async def get_color(self, asset_string, **kwargs):
         """
         Return the custom colors that have been saved by this user for a given context.
 
@@ -275,14 +275,14 @@ class User(CanvasObject):
         :type asset_string: str
         :rtype: dict
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "users/{}/colors/{}".format(self.id, asset_string),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()
+        return await response.json()
 
-    def get_colors(self, **kwargs):
+    async def get_colors(self, **kwargs):
         """
         Return all custom colors that have been saved by this user.
 
@@ -291,12 +291,12 @@ class User(CanvasObject):
 
         :rtype: dict
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "users/{}/colors".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()
+        return await response.json()
 
     def get_communication_channels(self, **kwargs):
         """
@@ -317,7 +317,7 @@ class User(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_content_export(self, content_export, **kwargs):
+    async def get_content_export(self, content_export, **kwargs):
         """
         Return information about a single content export.
 
@@ -333,13 +333,13 @@ class User(CanvasObject):
 
         export_id = obj_or_id(content_export, "content_export", (ContentExport,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "users/{}/content_exports/{}".format(self.id, export_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return ContentExport(self._requester, response.json())
+        return ContentExport(self._requester, await response.json())
 
     def get_content_exports(self, **kwargs):
         """
@@ -361,7 +361,7 @@ class User(CanvasObject):
             kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_content_migration(self, content_migration, **kwargs):
+    async def get_content_migration(self, content_migration, **kwargs):
         """
         Retrive a content migration by its ID
 
@@ -379,13 +379,13 @@ class User(CanvasObject):
             content_migration, "content_migration", (ContentMigration,)
         )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "users/{}/content_migrations/{}".format(self.id, migration_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"user_id": self.id})
 
         return ContentMigration(self._requester, response_json)
@@ -470,7 +470,7 @@ class User(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_feature_flag(self, feature, **kwargs):
+    async def get_feature_flag(self, feature, **kwargs):
         """
         Returns the feature flag that applies to the given user.
 
@@ -484,12 +484,12 @@ class User(CanvasObject):
         """
         feature_name = obj_or_str(feature, "name", (Feature,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "users/{}/features/flags/{}".format(self.id, feature_name),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return FeatureFlag(self._requester, response.json())
+        return FeatureFlag(self._requester, await response.json())
 
     def get_features(self, **kwargs):
         """
@@ -510,7 +510,7 @@ class User(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_file(self, file, **kwargs):
+    async def get_file(self, file, **kwargs):
         """
         Return the standard attachment json object for a file.
 
@@ -526,12 +526,12 @@ class User(CanvasObject):
 
         file_id = obj_or_id(file, "file", (File,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "users/{}/files/{}".format(self.id, file_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return File(self._requester, response.json())
+        return File(self._requester, await response.json())
 
     def get_files(self, **kwargs):
         """
@@ -553,7 +553,7 @@ class User(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_folder(self, folder, **kwargs):
+    async def get_folder(self, folder, **kwargs):
         """
         Returns the details for a user's folder
 
@@ -569,12 +569,12 @@ class User(CanvasObject):
 
         folder_id = obj_or_id(folder, "folder", (Folder,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "users/{}/folders/{}".format(self.id, folder_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Folder(self._requester, response.json())
+        return Folder(self._requester, await response.json())
 
     def get_folders(self, **kwargs):
         """
@@ -716,7 +716,7 @@ class User(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_profile(self, **kwargs):
+    async def get_profile(self, **kwargs):
         """
         Retrieve this user's profile.
 
@@ -725,8 +725,8 @@ class User(CanvasObject):
 
         :rtype: dict
         """
-        response = self._requester.request("GET", "users/{}/profile".format(self.id))
-        return response.json()
+        response = await self._requester.request("GET", "users/{}/profile".format(self.id))
+        return await response.json()
 
     def get_user_logins(self, **kwargs):
         """
@@ -748,7 +748,7 @@ class User(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def merge_into(self, destination_user, **kwargs):
+    async def merge_into(self, destination_user, **kwargs):
         """
         Merge this user into another user.
 
@@ -762,15 +762,15 @@ class User(CanvasObject):
         """
         dest_user_id = obj_or_id(destination_user, "destination_user", (User,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "users/{}/merge_into/{}".format(self.id, dest_user_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        super(User, self).set_attributes(response.json())
+        super(User, self).set_attributes(await response.json())
         return self
 
-    def remove_observee(self, observee_id, **kwargs):
+    async def remove_observee(self, observee_id, **kwargs):
         """
         Unregisters a user as being observed by the given user.
 
@@ -782,14 +782,14 @@ class User(CanvasObject):
         :rtype: :class: `canvasaio.user.User`
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "users/{}/observees/{}".format(self.id, observee_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return User(self._requester, response.json())
+        return User(self._requester, await response.json())
 
-    def remove_usage_rights(self, **kwargs):
+    async def remove_usage_rights(self, **kwargs):
         """
         Changes the usage rights for specified files that are under the user scope
 
@@ -799,13 +799,13 @@ class User(CanvasObject):
         :rtype: dict
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "users/{}/usage_rights".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json()
+        return await response.json()
 
     def resolve_path(self, full_path=None, **kwargs):
         """
@@ -840,7 +840,7 @@ class User(CanvasObject):
                 _kwargs=combine_kwargs(**kwargs),
             )
 
-    def set_usage_rights(self, **kwargs):
+    async def set_usage_rights(self, **kwargs):
         """
         Changes the usage rights for specified files that are under the user scope
 
@@ -850,15 +850,15 @@ class User(CanvasObject):
         :rtype: :class:`canvasaio.usage_rights.UsageRights`
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "users/{}/usage_rights".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return UsageRights(self._requester, response.json())
+        return UsageRights(self._requester, await response.json())
 
-    def show_observee(self, observee_id, **kwargs):
+    async def show_observee(self, observee_id, **kwargs):
         """
         Gets information about an observed user.
 
@@ -870,14 +870,14 @@ class User(CanvasObject):
         :rtype: :class: `canvasaio.user.User`
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "users/{}/observees/{}".format(self.id, observee_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return User(self._requester, response.json())
+        return User(self._requester, await response.json())
 
-    def update_color(self, asset_string, hexcode, **kwargs):
+    async def update_color(self, asset_string, hexcode, **kwargs):
         """
         Update a custom color for this user for a given context.
 
@@ -896,14 +896,14 @@ class User(CanvasObject):
         :rtype: dict
         """
         kwargs["hexcode"] = hexcode
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "users/{}/colors/{}".format(self.id, asset_string),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()
+        return await response.json()
 
-    def update_settings(self, **kwargs):
+    async def update_settings(self, **kwargs):
         """
         Update this user's settings.
 
@@ -912,12 +912,12 @@ class User(CanvasObject):
 
         :rtype: dict
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT", "users/{}/settings".format(self.id), _kwargs=combine_kwargs(**kwargs)
         )
-        return response.json()
+        return await response.json()
 
-    def upload(self, file, **kwargs):
+    async def upload(self, file, **kwargs):
         """
         Upload a file for a user.
 
@@ -934,7 +934,7 @@ class User(CanvasObject):
                     and the JSON response from the API.
         :rtype: tuple
         """
-        return Uploader(
+        return await Uploader(
             self._requester, "users/{}/files".format(self.id), file, **kwargs
         ).start()
 

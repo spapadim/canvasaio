@@ -65,7 +65,10 @@
 	},
 	"get_authentication_events": {
 		"method": "GET",
-		"endpoint": "audit/authentication/logins/101",
+		"endpoint": {
+			"url": "audit/authentication/logins/101",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"created_at": "2012-07-19T15:00:00-06:00",

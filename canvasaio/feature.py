@@ -50,7 +50,7 @@ class FeatureFlag(CanvasObject):
             self.context_type, self.context_id, self.feature, self.state
         )
 
-    def delete(self, feature, **kwargs):
+    async def delete(self, feature, **kwargs):
         """
         Remove a feature flag for a given account, course or user.
 
@@ -70,16 +70,16 @@ class FeatureFlag(CanvasObject):
         """
         feature_name = obj_or_str(feature, "name", (Feature,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "{}s/{}/features/flags/{}".format(
                 feature._parent_type, feature._parent_id, feature_name
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return FeatureFlag(self._requester, response.json())
+        return FeatureFlag(self._requester, await response.json())
 
-    def set_feature_flag(self, feature, **kwargs):
+    async def set_feature_flag(self, feature, **kwargs):
         """
         Set a feature flag for a given account, course or user.
 
@@ -102,11 +102,11 @@ class FeatureFlag(CanvasObject):
         """
         feature_name = obj_or_str(feature, "name", (Feature,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "{}s/{}/features/flags/{}".format(
                 feature._parent_type, feature._parent_id, feature_name
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return FeatureFlag(self._requester, response.json())
+        return FeatureFlag(self._requester, await response.json())

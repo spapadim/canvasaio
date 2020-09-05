@@ -8,68 +8,70 @@ from scripts.validate_docstrings import validate_method
 
 import unittest
 
-import requests_mock
+from aioresponses import aioresponses
+
+from tests.util import aioresponse_mock
 
 
 # test_endpoint_docstrings
-@requests_mock.Mocker()
-class TestValidateDocstrings(unittest.TestCase):
-    def test_validate_method_verb_mismatch(self, m):
+@aioresponse_mock
+class TestValidateDocstrings(unittest.IsolatedAsyncioTestCase):
+    async def test_validate_method_verb_mismatch(self, m):
         url = "https://canvas.instructure.com/doc/api/files.html#method.files.destroy>"
         register_doc_uri(url, m)
-        self.assertFalse(validate_method(ExampleMethods.verb_mismatch, True))
+        self.assertFalse(await validate_method(ExampleMethods.verb_mismatch, True))
 
-    def test_validate_method_invalid_verb(self, m):
+    async def test_validate_method_invalid_verb(self, m):
         url = "https://canvas.instructure.com/doc/api/files.html#method.files.destroy"
         register_doc_uri(url, m)
-        self.assertFalse(validate_method(ExampleMethods.invalid_verb, True))
+        self.assertFalse(await validate_method(ExampleMethods.invalid_verb, True))
 
-    def test_validate_method_no_api_call(self, m):
-        self.assertTrue(validate_method(ExampleMethods.no_api_call, True))
+    async def test_validate_method_no_api_call(self, m):
+        self.assertTrue(await validate_method(ExampleMethods.no_api_call, True))
 
-    def test_validate_method_good_docstring(self, m):
+    async def test_validate_method_good_docstring(self, m):
         url = "https://canvas.instructure.com/doc/api/files.html#method.files.destroy"
         register_doc_uri(url, m)
-        self.assertTrue(validate_method(ExampleMethods.good_docstring, True))
+        self.assertTrue(await validate_method(ExampleMethods.good_docstring, True))
 
-    def test_validate_method_multiple_endpoints(self, m):
+    async def test_validate_method_multiple_endpoints(self, m):
         url = "https://canvas.instructure.com/doc/api/files.html#method.folders.show"
         register_doc_uri(url, m)
-        self.assertTrue(validate_method(ExampleMethods.multiple_endpoints, True))
+        self.assertTrue(await validate_method(ExampleMethods.multiple_endpoints, True))
 
-    def test_validate_method_multiline_URL(self, m):
+    async def test_validate_method_multiline_URL(self, m):
         url = (
             "https://canvas.instructure.com/doc/api/notification_preferences.html"
             "#method.notification_preferences.index"
         )
         register_doc_uri(url, m)
-        self.assertTrue(validate_method(ExampleMethods.multiline_URL, True))
+        self.assertTrue(await validate_method(ExampleMethods.multiline_URL, True))
 
-    def test_validate_method_invalid_URL(self, m):
+    async def test_validate_method_invalid_URL(self, m):
         url = "https://canvas.instructure.com/doc/api/404.html"
         register_doc_uri(url, m, code=404)
-        self.assertFalse(validate_method(ExampleMethods.invalid_URL, True))
+        self.assertFalse(await validate_method(ExampleMethods.invalid_URL, True))
 
-    def test_validate_method_missing_endpoint_URL(self, m):
+    async def test_validate_method_missing_endpoint_URL(self, m):
         url = "https://canvas.instructure.com/doc/api/files.html"
         register_doc_uri(url, m)
-        self.assertFalse(validate_method(ExampleMethods.missing_endpoint_URL, True))
+        self.assertFalse(await validate_method(ExampleMethods.missing_endpoint_URL, True))
 
-    def test_validate_method_endpoint_URL_invalid(self, m):
+    async def test_validate_method_endpoint_URL_invalid(self, m):
         url = "https://canvas.instructure.com/doc/api/files.html#invalid"
         register_doc_uri(url, m)
-        self.assertFalse(validate_method(ExampleMethods.endpoint_invalid, True))
+        self.assertFalse(await validate_method(ExampleMethods.endpoint_invalid, True))
 
-    def test_validate_method_not_an_endpoint(self, m):
+    async def test_validate_method_not_an_endpoint(self, m):
         url = (
             "https://canvas.instructure.com/doc/api/notification_preferences.html"
             "#NotificationPreference"
         )
         register_doc_uri(url, m)
-        self.assertFalse(validate_method(ExampleMethods.not_an_endpoint, True))
+        self.assertFalse(await validate_method(ExampleMethods.not_an_endpoint, True))
 
 
-def register_doc_uri(url, m, code=200):
+def register_doc_uri(url, m: aioresponses, code=200):
     url_groups = re.search(r"(.*\/)([^\/]*)\.html", url)
     if not url_groups:
         return
@@ -80,26 +82,26 @@ def register_doc_uri(url, m, code=200):
     ) as file:
         data = file.read()
 
-    m.register_uri(
-        "GET",
+    m.get(
         url_groups.group(1) + url_groups.group(2) + ".html",
-        text=data,
-        status_code=code,
+        body=data,
+        content_type="text/plain",
+        status=code,
     )
 
 
 class ExampleMethods(CanvasObject):
-    def verb_mismatch(self):
+    async def verb_mismatch(self):
         """
         :calls: `PUT /api/v1/files/:id  \
         <https://canvas.instructure.com/doc/api/files.html#method.files.destroy>`_
 
         :rtype: :class:`canvasaio.file.File`
         """
-        response = self._requester.request("DELETE", "files/{}".format(self.id))
-        return ExampleMethods(self._requester, response.json())
+        response = await self._requester.request("DELETE", "files/{}".format(self.id))
+        return ExampleMethods(self._requester, await response.json())
 
-    def invalid_verb(self):
+    async def invalid_verb(self):
         """
         Delete this file.
 
@@ -108,8 +110,8 @@ class ExampleMethods(CanvasObject):
 
         :rtype: :class:`canvasaio.file.File`
         """
-        response = self._requester.request("DELETE", "files/{}".format(self.id))
-        return ExampleMethods(self._requester, response.json())
+        response = await self._requester.request("DELETE", "files/{}".format(self.id))
+        return ExampleMethods(self._requester, await response.json())
 
     def no_api_call(self):
         """
@@ -117,7 +119,7 @@ class ExampleMethods(CanvasObject):
         """
         return False
 
-    def good_docstring(self):
+    async def good_docstring(self):
         """
         Delete this file.
 
@@ -126,10 +128,10 @@ class ExampleMethods(CanvasObject):
 
         :rtype: :class:`canvasaio.file.File`
         """
-        response = self._requester.request("DELETE", "files/{}".format(self.id))
-        return ExampleMethods(self._requester, response.json())
+        response = await self._requester.request("DELETE", "files/{}".format(self.id))
+        return ExampleMethods(self._requester, await response.json())
 
-    def multiple_endpoints(self, folder):
+    async def multiple_endpoints(self, folder):
         """
         Return the details for a folder
 
@@ -143,10 +145,10 @@ class ExampleMethods(CanvasObject):
         """
         folder_id = obj_or_id(folder, "folder", (Folder,))
 
-        response = self.__requester.request("GET", "folders/{}".format(folder_id))
-        return Folder(self.__requester, response.json())
+        response = await self.__requester.request("GET", "folders/{}".format(folder_id))
+        return Folder(self.__requester, await response.json())
 
-    def multiline_URL(self, **kwargs):
+    async def multiline_URL(self, **kwargs):
         """
         Fetch all preferences for the given communication channel.
 
@@ -157,7 +159,7 @@ class ExampleMethods(CanvasObject):
 
         :rtype: `list`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "users/{}/communication_channels/{}/notification_preferences".format(
                 self.user_id, self.id
@@ -165,7 +167,7 @@ class ExampleMethods(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json()["notification_preferences"]
+        return (await response.json())["notification_preferences"]
 
     def non_api_call(self):
         """
@@ -179,7 +181,7 @@ class ExampleMethods(CanvasObject):
         """
         pass
 
-    def invalid_URL(self):
+    async def invalid_URL(self):
         """
         Delete this file.
 
@@ -188,10 +190,10 @@ class ExampleMethods(CanvasObject):
 
         :rtype: :class:`canvasaio.file.File`
         """
-        response = self._requester.request("DELETE", "files/{}".format(self.id))
-        return ExampleMethods(self._requester, response.json())
+        response = await self._requester.request("DELETE", "files/{}".format(self.id))
+        return ExampleMethods(self._requester, await response.json())
 
-    def missing_endpoint_URL(self, folder):
+    async def missing_endpoint_URL(self, folder):
         """
         Return the details for a folder
 
@@ -205,10 +207,10 @@ class ExampleMethods(CanvasObject):
         """
         folder_id = obj_or_id(folder, "folder", (Folder,))
 
-        response = self.__requester.request("GET", "folders/{}".format(folder_id))
-        return Folder(self.__requester, response.json())
+        response = await self.__requester.request("GET", "folders/{}".format(folder_id))
+        return Folder(self.__requester, await response.json())
 
-    def endpoint_invalid(self, folder):
+    async def endpoint_invalid(self, folder):
         """
         Return the details for a folder
 
@@ -222,10 +224,10 @@ class ExampleMethods(CanvasObject):
         """
         folder_id = obj_or_id(folder, "folder", (Folder,))
 
-        response = self.__requester.request("GET", "folders/{}".format(folder_id))
-        return Folder(self.__requester, response.json())
+        response = await self.__requester.request("GET", "folders/{}".format(folder_id))
+        return Folder(self.__requester, await response.json())
 
-    def not_an_endpoint(self, **kwargs):
+    async def not_an_endpoint(self, **kwargs):
         """
         Fetch all preferences for the given communication channel.
 
@@ -236,7 +238,7 @@ class ExampleMethods(CanvasObject):
 
         :rtype: `list`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "users/{}/communication_channels/{}/notification_preferences".format(
                 self.user_id, self.id
@@ -244,4 +246,4 @@ class ExampleMethods(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json()["notification_preferences"]
+        return (await response.json())["notification_preferences"]

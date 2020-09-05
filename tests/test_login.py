@@ -1,43 +1,46 @@
 import unittest
 
-import requests_mock
+from aioresponses import aioresponses
 
 from canvasaio import Canvas
 from canvasaio.authentication_event import AuthenticationEvent
 from canvasaio.login import Login
 from tests import settings
-from tests.util import register_uris
+from tests.util import register_uris, aioresponse_mock
 
 
-@requests_mock.Mocker()
-class TestLogin(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestLogin(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             register_uris({"account": ["get_by_id"], "login": ["create_user_login"]}, m)
 
-            self.account = self.canvas.get_account(1)
-            self.login = self.account.create_user_login(
+            self.account = await self.canvas.get_account(1)
+            self.login = await self.account.create_user_login(
                 user={"id": 1}, login={"unique_id": "belieber@example.com"}
             )
 
+    async def asyncTearDown(self) -> None:
+        await self.canvas.close()
+
     # delete()
-    def test_delete_user_login(self, m):
+    async def test_delete_user_login(self, m):
         register_uris({"login": ["delete_user_login"]}, m)
 
-        deleted_user_login = self.login.delete()
+        deleted_user_login = await self.login.delete()
 
         self.assertIsInstance(deleted_user_login, Login)
         self.assertTrue(hasattr(deleted_user_login, "unique_id"))
         self.assertEqual(deleted_user_login.unique_id, "belieber@example.com")
 
     # edit()
-    def test_edit_user_login(self, m):
+    async def test_edit_user_login(self, m):
         register_uris({"login": ["edit_user_login"]}, m)
 
         unique_id = "newemail@example.com"
-        edited_user_login = self.login.edit(
+        edited_user_login = await self.login.edit(
             user={"id": 1}, login={"unique_id": unique_id}
         )
 
@@ -51,11 +54,11 @@ class TestLogin(unittest.TestCase):
         self.assertIsInstance(string, str)
 
     # get_authentication_events()
-    def test_get_authentication_events(self, m):
+    async def test_get_authentication_events(self, m):
         register_uris({"login": ["get_authentication_events"]}, m)
 
         authentication_event = self.login.get_authentication_events()
-        event_list = [event for event in authentication_event]
+        event_list = [event async for event in authentication_event]
 
         self.assertEqual(len(event_list), 2)
 

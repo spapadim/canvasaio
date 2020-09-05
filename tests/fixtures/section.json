@@ -23,7 +23,10 @@
 	},
 	"list_enrollments": {
 		"method": "GET",
-		"endpoint": "sections/1/enrollments",
+		"endpoint": {
+			"url": "sections/1/enrollments",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -60,6 +63,7 @@
 	},
 	"crosslist_section":{
 		"method": "POST",
+		"repeat": true,
 		"endpoint": "sections/1/crosslist/2",
 		"data": {
 			"id": 1,
@@ -130,7 +134,10 @@
 	},
 	"list_multiple_submissions": {
 		"method": "GET",
-		"endpoint": "sections/1/students/submissions",
+		"endpoint": {
+			"url": "sections/1/students/submissions",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -151,7 +158,10 @@
 	},
 	"list_multiple_submissions_grouped": {
 		"method": "GET",
-		"endpoint": "sections/1/students/submissions",
+		"endpoint": {
+			"url": "sections/1/students/submissions",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"user_id": 1,

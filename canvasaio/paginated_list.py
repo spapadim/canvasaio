@@ -91,6 +91,7 @@ class PaginatedList(object):
                 # TODO: Fix this message to make more sense to an end user.
                 raise ValueError("Invalid root value specified.")
 
+        # XXX check; cf group.py:1071
         if type(data) == dict:  # XXX playing it safe for now, consider "type(data) != list" later
             data = [data]
 

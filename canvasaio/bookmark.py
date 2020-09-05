@@ -6,7 +6,7 @@ class Bookmark(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.name, self.id)
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Delete this bookmark.
 
@@ -15,14 +15,14 @@ class Bookmark(CanvasObject):
 
         :rtype: :class:`canvasaio.bookmark.Bookmark`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "users/self/bookmarks/{}".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Bookmark(self._requester, response.json())
+        return Bookmark(self._requester, await response.json())
 
-    def edit(self, **kwargs):
+    async def edit(self, **kwargs):
         """
         Modify this bookmark.
 
@@ -31,13 +31,14 @@ class Bookmark(CanvasObject):
 
         :rtype: :class:`canvasaio.bookmark.Bookmark`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "users/self/bookmarks/{}".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        if "name" in response.json() and "url" in response.json():
-            super(Bookmark, self).set_attributes(response.json())
+        response_json = await response.json()
+        if "name" in response_json and "url" in response_json:
+            super(Bookmark, self).set_attributes(response_json)
 
-        return Bookmark(self._requester, response.json())
+        return Bookmark(self._requester, response_json)

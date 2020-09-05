@@ -756,8 +756,9 @@ class Canvas(object):
             Course, self.__requester, "GET", "courses", _kwargs=combine_kwargs(**kwargs)
         )
 
-    def get_current_user(self):
-        return CurrentUser(self.__requester)
+    async def get_current_user(self):
+        response = await self.__requester.request("GET", "users/self")
+        return CurrentUser(self.__requester, await response.json())
 
     def get_epub_exports(self, **kwargs):
         """

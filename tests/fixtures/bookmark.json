@@ -30,6 +30,7 @@
 	},
 	"get_bookmark": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "users/self/bookmarks/45",
 		"data": {
 			"id": 45,
@@ -39,7 +40,10 @@
 	},
 	"list_bookmarks": {
 		"method": "GET",
-		"endpoint": "users/self/bookmarks",
+		"endpoint": {
+			"url": "users/self/bookmarks",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 56,

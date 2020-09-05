@@ -1,13 +1,19 @@
 {
 	"empty": {
 		"method": "ANY",
-		"endpoint": "empty_list",
+		"endpoint": {
+			"url": "empty_list",
+			"ignore_query": true
+		},
 		"data": [],
 		"status_code": 200
 	},
 	"single": {
 		"method": "ANY",
-		"endpoint": "single_item",
+		"endpoint": {
+			"url": "single_item",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": "1",
@@ -18,7 +24,10 @@
 	},
 	"2_1_page": {
 		"method": "ANY",
-		"endpoint": "two_objects_one_page",
+		"endpoint": {
+			"url": "two_objects_one_page",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": "1",
@@ -33,7 +42,10 @@
 	},
 	"4_2_pages_p1": {
 		"method": "ANY",
-		"endpoint": "four_objects_two_pages",
+		"endpoint": {
+			"url": "four_objects_two_pages",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": "1",
@@ -66,7 +78,10 @@
 	},
 	"6_3_pages_p1": {
 		"method": "ANY",
-		"endpoint": "six_objects_three_pages",
+		"endpoint": {
+			"url": "six_objects_three_pages",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": "1",

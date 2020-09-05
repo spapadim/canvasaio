@@ -9,7 +9,7 @@ class Section(CanvasObject):
     def __str__(self):
         return "{} - {} ({})".format(self.name, self.course_id, self.id)
 
-    def cross_list_section(self, new_course, **kwargs):
+    async def cross_list_section(self, new_course, **kwargs):
         """
         Move the Section to another course.
 
@@ -25,14 +25,14 @@ class Section(CanvasObject):
 
         new_course_id = obj_or_id(new_course, "new_course", (Course,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "sections/{}/crosslist/{}".format(self.id, new_course_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Section(self._requester, response.json())
+        return Section(self._requester, await response.json())
 
-    def decross_list_section(self, **kwargs):
+    async def decross_list_section(self, **kwargs):
         """
         Undo cross-listing of a section.
 
@@ -41,14 +41,14 @@ class Section(CanvasObject):
 
         :rtype: :class:`canvasaio.section.Section`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "sections/{}/crosslist".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Section(self._requester, response.json())
+        return Section(self._requester, await response.json())
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Delete a target section.
 
@@ -57,12 +57,12 @@ class Section(CanvasObject):
 
         :rtype: :class:`canvasaio.section.Section`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE", "sections/{}".format(self.id), _kwargs=combine_kwargs(**kwargs)
         )
-        return Section(self._requester, response.json())
+        return Section(self._requester, await response.json())
 
-    def edit(self, **kwargs):
+    async def edit(self, **kwargs):
         """
         Edit contents of a target section.
 
@@ -71,16 +71,17 @@ class Section(CanvasObject):
 
         :rtype: :class:`canvasaio.section.Section`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT", "sections/{}".format(self.id), _kwargs=combine_kwargs(**kwargs)
         )
 
-        if "name" in response.json():
-            super(Section, self).set_attributes(response.json())
+        response_json = await response.json()
+        if "name" in response_json:
+            super(Section, self).set_attributes(response_json)
 
         return self
 
-    def get_assignment_override(self, assignment, **kwargs):
+    async def get_assignment_override(self, assignment, **kwargs):
         """
         Return override for the specified assignment for this section.
 
@@ -96,10 +97,10 @@ class Section(CanvasObject):
 
         assignment_id = obj_or_id(assignment, "assignment", (Assignment,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET", "sections/{}/assignments/{}/override".format(self.id, assignment_id)
         )
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"course_id": self.course_id})
 
         return AssignmentOverride(self._requester, response_json)
@@ -151,7 +152,7 @@ class Section(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def submissions_bulk_update(self, **kwargs):
+    async def submissions_bulk_update(self, **kwargs):
         """
         Update the grading and comments on multiple student's assignment
         submissions in an asynchronous job.
@@ -161,9 +162,9 @@ class Section(CanvasObject):
 
         :rtype: :class:`canvasaio.progress.Progress`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "sections/{}/submissions/update_grades".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Progress(self._requester, response.json())
+        return Progress(self._requester, await response.json())

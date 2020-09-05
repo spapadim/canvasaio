@@ -8,17 +8,10 @@ from canvasaio.util import combine_kwargs, obj_or_id
 
 
 class CurrentUser(User):
-    def __init__(self, _requester):
-        self._requester = _requester
-
-        response = self._requester.request("GET", "users/self")
-
-        super(CurrentUser, self).__init__(self._requester, response.json())
-
     def __str__(self):
         return "{} ({})".format(self.name, self.id)
 
-    def add_favorite_course(self, course, use_sis_id=False, **kwargs):
+    async def add_favorite_course(self, course, use_sis_id=False, **kwargs):
         """
         Add a course to the current user's favorites. If the course is already
         in the user's favorites, nothing happens.
@@ -42,12 +35,12 @@ class CurrentUser(User):
             course_id = obj_or_id(course, "course", (Course,))
             uri_str = "users/self/favorites/courses/{}"
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST", uri_str.format(course_id), _kwargs=combine_kwargs(**kwargs)
         )
-        return Favorite(self._requester, response.json())
+        return Favorite(self._requester, await response.json())
 
-    def add_favorite_group(self, group, use_sis_id=False, **kwargs):
+    async def add_favorite_group(self, group, use_sis_id=False, **kwargs):
         """
         Add a group to the current user's favorites. If the group is already
         in the user's favorites, nothing happens.
@@ -71,12 +64,12 @@ class CurrentUser(User):
             group_id = obj_or_id(group, "group", (Group,))
             uri_str = "users/self/favorites/groups/{}"
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST", uri_str.format(group_id), _kwargs=combine_kwargs(**kwargs)
         )
-        return Favorite(self._requester, response.json())
+        return Favorite(self._requester, await response.json())
 
-    def create_bookmark(self, name, url, **kwargs):
+    async def create_bookmark(self, name, url, **kwargs):
         """
         Create a new Bookmark.
 
@@ -91,7 +84,7 @@ class CurrentUser(User):
         """
         from canvasaio.bookmark import Bookmark
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "users/self/bookmarks",
             name=name,
@@ -99,9 +92,9 @@ class CurrentUser(User):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return Bookmark(self._requester, response.json())
+        return Bookmark(self._requester, await response.json())
 
-    def get_bookmark(self, bookmark, **kwargs):
+    async def get_bookmark(self, bookmark, **kwargs):
         """
         Return single Bookmark by id
 
@@ -117,12 +110,12 @@ class CurrentUser(User):
 
         bookmark_id = obj_or_id(bookmark, "bookmark", (Bookmark,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "users/self/bookmarks/{}".format(bookmark_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Bookmark(self._requester, response.json())
+        return Bookmark(self._requester, await response.json())
 
     def get_bookmarks(self, **kwargs):
         """
@@ -197,7 +190,7 @@ class CurrentUser(User):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def reset_favorite_courses(self, **kwargs):
+    async def reset_favorite_courses(self, **kwargs):
         """
         Reset the current user's course favorites to the default
         automatically generated list of enrolled courses
@@ -209,12 +202,12 @@ class CurrentUser(User):
         :rtype: bool
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE", "users/self/favorites/courses", _kwargs=combine_kwargs(**kwargs)
         )
-        return response.json().get("message") == "OK"
+        return (await response.json()).get("message") == "OK"
 
-    def reset_favorite_groups(self, **kwargs):
+    async def reset_favorite_groups(self, **kwargs):
         """
         Reset the current user's group favorites to the default
         automatically generated list of enrolled groups
@@ -226,7 +219,7 @@ class CurrentUser(User):
         :rtype: bool
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE", "users/self/favorites/groups", _kwargs=combine_kwargs(**kwargs)
         )
-        return response.json().get("message") == "OK"
+        return (await response.json()).get("message") == "OK"

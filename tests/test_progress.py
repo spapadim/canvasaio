@@ -1,19 +1,19 @@
 import unittest
 
-import requests_mock
+from aioresponses import aioresponses
 
 from canvasaio.canvas import Canvas
 from canvasaio.progress import Progress
 from tests import settings
-from tests.util import register_uris
+from tests.util import register_uris, aioresponse_mock
 
 
-@requests_mock.Mocker()
-class TestProgress(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestProgress(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             requires = {
                 "course": ["get_by_id", "create_group_category"],
                 "group": ["category_assign_members_false"],
@@ -21,9 +21,12 @@ class TestProgress(unittest.TestCase):
 
             register_uris(requires, m)
 
-            self.course = self.canvas.get_course(1)
-            self.group_category = self.course.create_group_category("Test String")
-            self.progress = self.group_category.assign_members()
+            self.course = await self.canvas.get_course(1)
+            self.group_category = await self.course.create_group_category("Test String")
+            self.progress = await self.group_category.assign_members()
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):
@@ -31,8 +34,8 @@ class TestProgress(unittest.TestCase):
         self.assertIsInstance(string, str)
 
     # query()
-    def test_query(self, m):
+    async def test_query(self, m):
         register_uris({"progress": ["progress_query"]}, m)
 
-        response = self.progress.query()
+        response = await self.progress.query()
         self.assertIsInstance(response, Progress)

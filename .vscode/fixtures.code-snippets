@@ -1,0 +1,61 @@
+{
+	// Place your canvasaio workspace snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and 
+	// description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope 
+	// is left empty or omitted, the snippet gets applied to all languages. The prefix is what is 
+	// used to trigger the snippet and the body will be expanded and inserted. Possible variables are: 
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. 
+	// Placeholders with the same ids are connected.
+	// Example:
+	// "Print to console": {
+	// 	"scope": "javascript,typescript",
+	// 	"prefix": "log",
+	// 	"body": [
+	// 		"console.log('$1');",
+	// 		"$2"
+	// 	],
+	// 	"description": "Log output to console"
+	// }
+	"Fixture endpoint ignore query string": {
+		"scope": "json",
+		"prefix": "epq",
+		"body": [
+			"{",
+			"\t\"url\": ${0:$TM_SELECTED_TEXT},",
+			"\t\"ignore_query\": true",
+			"}"
+		],
+		"description": "Fixture endpoint with ignore_query set to true"
+	},
+
+	"Fixture repeat request": {
+		"scope": "json",
+		"prefix": "rrep",
+		"body": [ "\"repeat\": true," ],
+		"description": "Fixture add repeat property"
+	},
+
+	"Import aioresponses": {
+		"scope": "python",
+		"prefix": "iaio",
+		"body": [ "from aioresponses import aioresponses" ],
+		"description": "Import aioresponses"
+	},
+
+	"Response json assignment": {
+		"scope": "python",
+		"prefix": "respjson",
+		"body": [ "response_json = await response.json()" ],
+		"description": "Await response.json() into local variable"
+	},
+
+	"Async teardown": {
+		"scope": "python",
+		"prefix": "teardown",
+		"body": [
+			"async def asyncTearDown(self):",
+			"\tawait self.canvas.close()",
+			""
+		],
+		"description": "Define asyncTearDown method to self.camvas.close()"
+	}
+}

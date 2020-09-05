@@ -1,18 +1,18 @@
 import unittest
 
-import requests_mock
+from aioresponses import aioresponses
 
 from canvasaio import Canvas
 from tests import settings
-from tests.util import register_uris
+from tests.util import register_uris, aioresponse_mock
 
 
-@requests_mock.Mocker()
-class TestAuthenticationEvent(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestAuthenticationEvent(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             requires = {
                 "account": ["get_by_id", "get_authentication_events"],
                 "login": ["create_user_login", "get_authentication_events"],
@@ -20,17 +20,20 @@ class TestAuthenticationEvent(unittest.TestCase):
             }
             register_uris(requires, m)
 
-            self.account = self.canvas.get_account(1)
-            self.login = self.account.create_user_login(
+            self.account = await self.canvas.get_account(1)
+            self.login = await self.account.create_user_login(
                 user={"id": 1}, login={"unique_id": "belieber@example.com"}
             )
-            self.user = self.canvas.get_user(1)
+            self.user = await self.canvas.get_user(1)
 
             self.authentication_event_account = (
-                self.account.get_authentication_events()[0]
+                await self.account.get_authentication_events()[0]
             )
-            self.authentication_event_login = self.login.get_authentication_events()[0]
-            self.authentication_event_user = self.user.get_authentication_events()[0]
+            self.authentication_event_login = await self.login.get_authentication_events()[0]
+            self.authentication_event_user = await self.user.get_authentication_events()[0]
+
+    async def asyncTearDown(self) -> None:
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):

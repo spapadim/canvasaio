@@ -6,7 +6,7 @@ class File(CanvasObject):
     def __str__(self):
         return "{}".format(self.display_name)
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Delete this file.
 
@@ -15,28 +15,28 @@ class File(CanvasObject):
 
         :rtype: :class:`canvasaio.file.File`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE", "files/{}".format(self.id), _kwargs=combine_kwargs(**kwargs)
         )
-        return File(self._requester, response.json())
+        return File(self._requester, await response.json())
 
-    def download(self, location):
+    async def download(self, location):
         """
         Download the file to specified location.
 
         :param location: The path to download to.
         :type location: str
         """
-        response = self._requester.request("GET", _url=self.url)
+        response = await self._requester.request("GET", _url=self.url)
 
         with open(location, "wb") as file_out:
-            file_out.write(response.content)
+            file_out.write(await response.read())
 
-    def get_contents(self):
+    async def get_contents(self):
         """
         Download the contents of this file.
 
         :rtype: str
         """
-        response = self._requester.request("GET", _url=self.url)
-        return response.text
+        response = await self._requester.request("GET", _url=self.url)
+        return await response.text()

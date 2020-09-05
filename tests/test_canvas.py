@@ -24,8 +24,6 @@ from canvasaio.user import User
 from tests import settings
 from tests.util import register_uris, aioresponse_mock
 
-from aioresponses import aioresponses  # XXX temporary
-
 @aioresponse_mock
 class TestCanvas(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
@@ -605,7 +603,7 @@ class TestCanvas(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(users_get_by_id), 2)
 
     # get_group_participants()
-    async def test_get_group_participants(self, m: aioresponses):
+    async def test_get_group_participants(self, m):
         register_uris(
             {
                 "appointment_group": [

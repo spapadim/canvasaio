@@ -6,7 +6,7 @@ class Tab(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.label, self.id)
 
-    def update(self, **kwargs):
+    async def update(self, **kwargs):
         """
         Update a tab for a course.
 
@@ -21,12 +21,12 @@ class Tab(CanvasObject):
         if not hasattr(self, "course_id"):
             raise ValueError("Can only update tabs from a Course.")
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/tabs/{}".format(self.course_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"course_id": self.course_id})
 
         super(Tab, self).set_attributes(response_json)

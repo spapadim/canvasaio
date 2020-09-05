@@ -1,6 +1,7 @@
 {
 	"add_favorite_course": {
 		"method": "POST",
+		"repeat": true,
 		"endpoint": "users/self/favorites/courses/1",
 		"data":
 			{
@@ -21,6 +22,7 @@
 	},
 	"add_favorite_group": {
 		"method": "POST",
+		"repeat": true,
 		"endpoint": "users/self/favorites/groups/1",
 		"data":
 			{
@@ -50,7 +52,10 @@
 	},
 	"get_favorite_courses": {
 		"method": "GET",
-		"endpoint": "users/self/favorites/courses",
+		"endpoint": {
+			"url": "users/self/favorites/courses",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -67,7 +72,10 @@
 	},
 	"get_favorite_groups": {
 		"method": "GET",
-		"endpoint": "users/self/favorites/groups",
+		"endpoint": {
+			"url": "users/self/favorites/groups",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -82,7 +90,10 @@
 	},
 	"list_groups": {
 		"method": "GET",
-		"endpoint": "users/self/groups",
+		"endpoint": {
+			"url": "users/self/groups",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,

@@ -1,19 +1,19 @@
 import unittest
 
-import requests_mock
+from aioresponses import aioresponses
 
 from canvasaio import Canvas
 from canvasaio.outcome import Outcome, OutcomeGroup, OutcomeLink
 from tests import settings
-from tests.util import register_uris
+from tests.util import register_uris, aioresponse_mock
 
 
-@requests_mock.Mocker()
-class TestOutcome(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestOutcome(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             register_uris(
                 {
                     "course": ["get_by_id"],
@@ -28,9 +28,13 @@ class TestOutcome(unittest.TestCase):
                 m,
             )
 
-            self.course = self.canvas.get_course(1)
+            self.course = await self.canvas.get_course(1)
             self.course_outcome_links = self.course.get_all_outcome_links_in_context()
-            self.example_outcome = self.course_outcome_links[0].get_outcome()
+            self.example_outcome = await (await self.course_outcome_links[0]).get_outcome()
+
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):
@@ -38,21 +42,21 @@ class TestOutcome(unittest.TestCase):
         self.assertIsInstance(string, str)
 
     # update()
-    def test_update(self, m):
+    async def test_update(self, m):
         register_uris({"outcome": ["outcome_update"]}, m)
         self.assertEqual(self.example_outcome.title, "Outcome Show Example")
-        result = self.example_outcome.update(title="new_title")
+        result = await self.example_outcome.update(title="new_title")
         self.assertTrue(result)
         self.assertIsInstance(self.example_outcome, Outcome)
         self.assertEqual(self.example_outcome.title, "new_title")
 
 
-@requests_mock.Mocker()
-class TestOutcomeLink(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestOutcomeLink(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             register_uris(
                 {
                     "account": ["get_by_id"],
@@ -65,27 +69,30 @@ class TestOutcomeLink(unittest.TestCase):
                 m,
             )
 
-            self.account = self.canvas.get_account(1)
+            self.account = await self.canvas.get_account(1)
             self.account_outcome_links = self.account.get_all_outcome_links_in_context()
-            self.course = self.canvas.get_course(1)
+            self.course = await self.canvas.get_course(1)
             self.course_outcome_links = self.course.get_all_outcome_links_in_context()
 
+    async def asyncTearDown(self):
+        await self.canvas.close()
+
     # __str__()
-    def test__str__(self, m):
+    async def test__str__(self, m):
         register_uris({"outcome": ["course_outcome_links_in_context"]}, m)
-        string = str(self.course_outcome_links[0])
+        string = str(await self.course_outcome_links[0])
         self.assertIsInstance(string, str)
 
     # get_outcome()
-    def test_get_outcome(self, m):
+    async def test_get_outcome(self, m):
         register_uris(
             {"outcome": ["outcome_example", "course_outcome_links_in_context"]}, m
         )
-        result = self.course_outcome_links[0].get_outcome()
+        result = await (await self.course_outcome_links[0]).get_outcome()
         self.assertIsInstance(result, Outcome)
 
     # get_outcome_group()
-    def test_get_outcome_group(self, m):
+    async def test_get_outcome_group(self, m):
         register_uris(
             {
                 "outcome": [
@@ -97,18 +104,18 @@ class TestOutcomeLink(unittest.TestCase):
             },
             m,
         )
-        result = self.course_outcome_links[0].get_outcome_group()
+        result = await (await self.course_outcome_links[0]).get_outcome_group()
         self.assertIsInstance(result, OutcomeGroup)
-        result = self.account_outcome_links[0].get_outcome_group()
+        result = await (await self.account_outcome_links[0]).get_outcome_group()
         self.assertIsInstance(result, OutcomeGroup)
 
 
-@requests_mock.Mocker()
-class TestOutcomeGroup(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestOutcomeGroup(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             register_uris(
                 {
                     "account": ["get_by_id"],
@@ -124,19 +131,22 @@ class TestOutcomeGroup(unittest.TestCase):
                 m,
             )
 
-            self.canvas_outcome_group = self.canvas.get_root_outcome_group()
+            self.canvas_outcome_group = await self.canvas.get_root_outcome_group()
 
-            self.account = self.canvas.get_account(1)
-            self.account_outcome_group = self.account.get_root_outcome_group()
+            self.account = await self.canvas.get_account(1)
+            self.account_outcome_group = await self.account.get_root_outcome_group()
             self.account_outcome_groups = self.account.get_outcome_groups_in_context()
             self.account_outcome_links = self.account.get_all_outcome_links_in_context()
 
-            self.course = self.canvas.get_course(1)
-            self.course_outcome_group = self.course.get_root_outcome_group()
+            self.course = await self.canvas.get_course(1)
+            self.course_outcome_group = await self.course.get_root_outcome_group()
             self.course_outcome_groups = self.course.get_outcome_groups_in_context()
             self.course_outcome_links = self.course.get_all_outcome_links_in_context()
 
-            self.example_outcome = self.course_outcome_links[0].get_outcome()
+            self.example_outcome = await (await self.course_outcome_links[0]).get_outcome()
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):
@@ -144,7 +154,7 @@ class TestOutcomeGroup(unittest.TestCase):
         self.assertIsInstance(string, str)
 
     # update()
-    def test_update(self, m):
+    async def test_update(self, m):
         register_uris(
             {
                 "outcome": [
@@ -159,25 +169,25 @@ class TestOutcomeGroup(unittest.TestCase):
         new_title = "New Outcome Group Title"
 
         self.assertEqual(self.account_outcome_group.title, "ROOT")
-        result = self.account_outcome_group.update(title=new_title)
+        result = await self.account_outcome_group.update(title=new_title)
         self.assertTrue(result)
         self.assertIsInstance(self.account_outcome_group, OutcomeGroup)
         self.assertEqual(self.account_outcome_group.title, new_title)
 
         self.assertEqual(self.canvas_outcome_group.title, "ROOT")
-        result = self.canvas_outcome_group.update(title=new_title)
+        result = await self.canvas_outcome_group.update(title=new_title)
         self.assertTrue(result)
         self.assertIsInstance(self.canvas_outcome_group, OutcomeGroup)
         self.assertEqual(self.canvas_outcome_group.title, new_title)
 
         self.assertEqual(self.course_outcome_group.title, "ROOT")
-        result = self.course_outcome_group.update(title=new_title)
+        result = await self.course_outcome_group.update(title=new_title)
         self.assertTrue(result)
         self.assertIsInstance(self.course_outcome_group, OutcomeGroup)
         self.assertEqual(self.course_outcome_group.title, new_title)
 
     # delete()
-    def test_delete(self, m):
+    async def test_delete(self, m):
         register_uris(
             {
                 "outcome": [
@@ -190,19 +200,19 @@ class TestOutcomeGroup(unittest.TestCase):
         )
 
         self.assertEqual(self.account_outcome_group.title, "ROOT")
-        result = self.account_outcome_group.delete()
+        result = await self.account_outcome_group.delete()
         self.assertTrue(result)
 
         self.assertEqual(self.canvas_outcome_group.title, "ROOT")
-        result = self.canvas_outcome_group.delete()
+        result = await self.canvas_outcome_group.delete()
         self.assertTrue(result)
 
         self.assertEqual(self.course_outcome_group.title, "ROOT")
-        result = self.course_outcome_group.delete()
+        result = await self.course_outcome_group.delete()
         self.assertTrue(result)
 
     # get_linked_outcomes()
-    def test_get_linked_outcomes(self, m):
+    async def test_get_linked_outcomes(self, m):
         register_uris(
             {
                 "outcome": [
@@ -215,22 +225,25 @@ class TestOutcomeGroup(unittest.TestCase):
         )
 
         result = self.account_outcome_group.get_linked_outcomes()
-        self.assertIsInstance(result[0], OutcomeLink)
-        self.assertEqual(result[0].outcome_group["id"], 2)
-        self.assertEqual(result[0].outcome_group["title"], "Account Test Outcome Group")
+        result_0 = await result[0]
+        self.assertIsInstance(result_0, OutcomeLink)
+        self.assertEqual(result_0.outcome_group["id"], 2)
+        self.assertEqual(result_0.outcome_group["title"], "Account Test Outcome Group")
 
         result = self.canvas_outcome_group.get_linked_outcomes()
-        self.assertIsInstance(result[0], OutcomeLink)
-        self.assertEqual(result[0].outcome_group["id"], 2)
-        self.assertEqual(result[0].outcome_group["title"], "Global Test Outcome Group")
+        result_0 = await result[0]
+        self.assertIsInstance(result_0, OutcomeLink)
+        self.assertEqual(result_0.outcome_group["id"], 2)
+        self.assertEqual(result_0.outcome_group["title"], "Global Test Outcome Group")
 
         result = self.course_outcome_group.get_linked_outcomes()
-        self.assertIsInstance(result[0], OutcomeLink)
-        self.assertEqual(result[0].outcome_group["id"], 2)
-        self.assertEqual(result[0].outcome_group["title"], "Course Test Outcome Group")
+        result_0 = await result[0]
+        self.assertIsInstance(result_0, OutcomeLink)
+        self.assertEqual(result_0.outcome_group["id"], 2)
+        self.assertEqual(result_0.outcome_group["title"], "Course Test Outcome Group")
 
     # link_existing()
-    def test_link_existing(self, m):
+    async def test_link_existing(self, m):
         register_uris(
             {
                 "outcome": [
@@ -243,32 +256,32 @@ class TestOutcomeGroup(unittest.TestCase):
             m,
         )
 
-        result = self.canvas_outcome_group.link_existing(self.example_outcome)
+        result = await self.canvas_outcome_group.link_existing(self.example_outcome)
         self.assertIsInstance(result, OutcomeLink)
         self.assertEqual(result.outcome_group["id"], 2)
 
-        result = self.account_outcome_group.link_existing(self.example_outcome)
+        result = await self.account_outcome_group.link_existing(self.example_outcome)
         self.assertIsInstance(result, OutcomeLink)
         self.assertEqual(result.outcome_group["id"], 2)
 
-        result = self.course_outcome_group.link_existing(self.example_outcome)
+        result = await self.course_outcome_group.link_existing(self.example_outcome)
         self.assertIsInstance(result, OutcomeLink)
         self.assertEqual(result.outcome_group["id"], 2)
 
-        result = self.canvas_outcome_group.link_existing(3)
+        result = await self.canvas_outcome_group.link_existing(3)
         self.assertIsInstance(result, OutcomeLink)
         self.assertEqual(result.outcome_group["id"], 2)
 
-        result = self.account_outcome_group.link_existing(3)
+        result = await self.account_outcome_group.link_existing(3)
         self.assertIsInstance(result, OutcomeLink)
         self.assertEqual(result.outcome_group["id"], 2)
 
-        result = self.course_outcome_group.link_existing(3)
+        result = await self.course_outcome_group.link_existing(3)
         self.assertIsInstance(result, OutcomeLink)
         self.assertEqual(result.outcome_group["id"], 2)
 
     # link_new()
-    def test_link_new(self, m):
+    async def test_link_new(self, m):
         register_uris(
             {
                 "outcome": [
@@ -282,26 +295,26 @@ class TestOutcomeGroup(unittest.TestCase):
 
         new_title = "New Outcome"
 
-        result = self.canvas_outcome_group.link_new(title=new_title)
+        result = await self.canvas_outcome_group.link_new(title=new_title)
         self.assertIsInstance(result, OutcomeLink)
         self.assertEqual(result.outcome_group["id"], 1)
         self.assertEqual(result.outcome["id"], 2)
         self.assertEqual(result.outcome["context_type"], None)
 
-        result = self.account_outcome_group.link_new(title=new_title)
+        result = await self.account_outcome_group.link_new(title=new_title)
         self.assertIsInstance(result, OutcomeLink)
         self.assertEqual(result.outcome_group["id"], 1)
         self.assertEqual(result.outcome["id"], 2)
         self.assertEqual(result.outcome["context_type"], "Account")
 
-        result = self.course_outcome_group.link_new(title=new_title)
+        result = await self.course_outcome_group.link_new(title=new_title)
         self.assertIsInstance(result, OutcomeLink)
         self.assertEqual(result.outcome_group["id"], 1)
         self.assertEqual(result.outcome["id"], 2)
         self.assertEqual(result.outcome["context_type"], "Course")
 
     # unlink_outcome()
-    def test_unlink_outcome(self, m):
+    async def test_unlink_outcome(self, m):
         register_uris(
             {
                 "outcome": [
@@ -314,26 +327,26 @@ class TestOutcomeGroup(unittest.TestCase):
             m,
         )
 
-        result = self.canvas_outcome_group.unlink_outcome(self.example_outcome)
+        result = await self.canvas_outcome_group.unlink_outcome(self.example_outcome)
         self.assertTrue(result)
 
-        result = self.account_outcome_group.unlink_outcome(self.example_outcome)
+        result = await self.account_outcome_group.unlink_outcome(self.example_outcome)
         self.assertTrue(result)
 
-        result = self.course_outcome_group.unlink_outcome(self.example_outcome)
+        result = await self.course_outcome_group.unlink_outcome(self.example_outcome)
         self.assertTrue(result)
 
-        result = self.canvas_outcome_group.unlink_outcome(3)
+        result = await self.canvas_outcome_group.unlink_outcome(3)
         self.assertTrue(result)
 
-        result = self.account_outcome_group.unlink_outcome(3)
+        result = await self.account_outcome_group.unlink_outcome(3)
         self.assertTrue(result)
 
-        result = self.course_outcome_group.unlink_outcome(3)
+        result = await self.course_outcome_group.unlink_outcome(3)
         self.assertTrue(result)
 
     # get_subgroups()
-    def test_get_subgroups(self, m):
+    async def test_get_subgroups(self, m):
         register_uris(
             {
                 "outcome": [
@@ -345,7 +358,8 @@ class TestOutcomeGroup(unittest.TestCase):
             m,
         )
 
-        result = self.canvas_outcome_group.get_subgroups()
+        response = self.canvas_outcome_group.get_subgroups()
+        result = [subgroup async for subgroup in response]
         self.assertIsInstance(result[0], OutcomeGroup)
         self.assertEqual(result[0].id, 2)
         self.assertEqual(result[0].title, "Global Listed Subgroup Title 1")
@@ -361,7 +375,8 @@ class TestOutcomeGroup(unittest.TestCase):
         self.assertTrue(hasattr(result[0], "context_id"))
         self.assertEqual(result[0].context_id, None)
 
-        result = self.account_outcome_group.get_subgroups()
+        response = self.account_outcome_group.get_subgroups()
+        result = [subgroup async for subgroup in response]
         self.assertIsInstance(result[0], OutcomeGroup)
         self.assertEqual(result[0].id, 2)
         self.assertEqual(result[0].title, "Account Listed Subgroup Title 1")
@@ -377,7 +392,8 @@ class TestOutcomeGroup(unittest.TestCase):
         self.assertTrue(hasattr(result[0], "context_id"))
         self.assertEqual(result[0].context_id, self.account.id)
 
-        result = self.course_outcome_group.get_subgroups()
+        response = self.course_outcome_group.get_subgroups()
+        result = [subgroup async for subgroup in response]
         self.assertIsInstance(result[0], OutcomeGroup)
         self.assertEqual(result[0].id, 2)
         self.assertEqual(result[0].title, "Course Listed Subgroup Title 1")
@@ -394,7 +410,7 @@ class TestOutcomeGroup(unittest.TestCase):
         self.assertEqual(result[0].context_id, self.course.id)
 
     # create_subgroup()
-    def test_create_subgroup(self, m):
+    async def test_create_subgroup(self, m):
         register_uris(
             {
                 "outcome": [
@@ -408,21 +424,21 @@ class TestOutcomeGroup(unittest.TestCase):
 
         new_title = "New Subgroup Title"
 
-        result = self.canvas_outcome_group.create_subgroup(new_title)
+        result = await self.canvas_outcome_group.create_subgroup(new_title)
         self.assertEqual(
             self.canvas_outcome_group.id, result.parent_outcome_group["id"]
         )
         self.assertEqual(result.parent_outcome_group["title"], "Parent of Subgroup")
         self.assertEqual(result.title, "New Subgroup Title")
 
-        result = self.account_outcome_group.create_subgroup(new_title)
+        result = await self.account_outcome_group.create_subgroup(new_title)
         self.assertEqual(
             self.canvas_outcome_group.id, result.parent_outcome_group["id"]
         )
         self.assertEqual(result.parent_outcome_group["title"], "Parent of Subgroup")
         self.assertEqual(result.title, "New Subgroup Title")
 
-        result = self.course_outcome_group.create_subgroup(new_title)
+        result = await self.course_outcome_group.create_subgroup(new_title)
         self.assertEqual(
             self.canvas_outcome_group.id, result.parent_outcome_group["id"]
         )
@@ -430,7 +446,7 @@ class TestOutcomeGroup(unittest.TestCase):
         self.assertEqual(result.title, "New Subgroup Title")
 
     # import_outcome_group()
-    def test_import_outcome_group(self, m):
+    async def test_import_outcome_group(self, m):
         register_uris(
             {
                 "outcome": [
@@ -442,7 +458,7 @@ class TestOutcomeGroup(unittest.TestCase):
             m,
         )
 
-        result = self.canvas_outcome_group.import_outcome_group(3)
+        result = await self.canvas_outcome_group.import_outcome_group(3)
         self.assertEqual(result.id, 4)
         self.assertEqual(result.title, "Global Imported Subgroup Title")
         self.assertEqual(
@@ -452,7 +468,7 @@ class TestOutcomeGroup(unittest.TestCase):
             result.parent_outcome_group["title"], self.canvas_outcome_group.title
         )
 
-        result = self.account_outcome_group.import_outcome_group(3)
+        result = await self.account_outcome_group.import_outcome_group(3)
         self.assertEqual(result.id, 4)
         self.assertEqual(result.title, "Account Imported Subgroup Title")
         self.assertEqual(
@@ -462,7 +478,7 @@ class TestOutcomeGroup(unittest.TestCase):
             result.parent_outcome_group["title"], self.account_outcome_group.title
         )
 
-        result = self.course_outcome_group.import_outcome_group(3)
+        result = await self.course_outcome_group.import_outcome_group(3)
         self.assertEqual(result.id, 4)
         self.assertEqual(result.title, "Course Imported Subgroup Title")
         self.assertEqual(
@@ -472,7 +488,7 @@ class TestOutcomeGroup(unittest.TestCase):
             result.parent_outcome_group["title"], self.course_outcome_group.title
         )
 
-        result_by_obj = self.course_outcome_group.import_outcome_group(result)
+        result_by_obj = await self.course_outcome_group.import_outcome_group(result)
         self.assertEqual(result_by_obj.id, 4)
         self.assertEqual(result_by_obj.title, "Course Imported Subgroup Title")
         self.assertEqual(

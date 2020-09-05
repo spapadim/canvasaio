@@ -1,7 +1,8 @@
 import unittest
 import uuid
+from aiohttp.resolver import aiodns_default
 
-import requests_mock
+from aioresponses import aioresponses
 
 from canvasaio import Canvas
 from canvasaio.course import CourseNickname
@@ -18,13 +19,16 @@ from canvasaio.util import (
 )
 from itertools import chain
 from tests import settings
-from tests.util import cleanup_file, register_uris
+from tests.util import cleanup_file, register_uris, aioresponse_mock
 
 
-@requests_mock.Mocker()
-class TestUtil(unittest.TestCase):
+@aioresponse_mock
+class TestUtil(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # is_multivalued()
     def test_is_multivalued_bool(self, m):
@@ -393,28 +397,28 @@ class TestUtil(unittest.TestCase):
         with self.assertRaises(TypeError):
             obj_or_id("1a", "user_id", (User,))
 
-    def test_obj_or_id_obj(self, m):
+    async def test_obj_or_id_obj(self, m):
         register_uris({"user": ["get_by_id"]}, m)
 
-        user = self.canvas.get_user(1)
+        user = await self.canvas.get_user(1)
 
         user_id = obj_or_id(user, "user_id", (User,))
 
         self.assertIsInstance(user_id, int)
         self.assertEqual(user_id, 1)
 
-    def test_obj_or_id_obj_no_id(self, m):
+    async def test_obj_or_id_obj_no_id(self, m):
         register_uris({"user": ["course_nickname"]}, m)
 
-        nick = self.canvas.get_course_nickname(1)
+        nick = await self.canvas.get_course_nickname(1)
 
         with self.assertRaises(TypeError):
             obj_or_id(nick, "nickname_id", (CourseNickname,))
 
-    def test_obj_or_id_multiple_objs(self, m):
+    async def test_obj_or_id_multiple_objs(self, m):
         register_uris({"user": ["get_by_id"]}, m)
 
-        user = self.canvas.get_user(1)
+        user = await self.canvas.get_user(1)
 
         user_id = obj_or_id(user, "user_id", (CourseNickname, User))
 
@@ -432,37 +436,37 @@ class TestUtil(unittest.TestCase):
             obj_or_id("self", "user_id", (CourseNickname,))
 
     # obj_or_str()
-    def test_obj_or_str_obj_attr(self, m):
+    async def test_obj_or_str_obj_attr(self, m):
         register_uris({"user": ["get_by_id"]}, m)
 
-        user = self.canvas.get_user(1)
+        user = await self.canvas.get_user(1)
 
         user_name = obj_or_str(user, "name", (User,))
 
         self.assertIsInstance(user_name, str)
         self.assertEqual(user_name, "John Doe")
 
-    def test_obj_or_str_obj_no_attr(self, m):
+    async def test_obj_or_str_obj_no_attr(self, m):
         register_uris({"user": ["get_by_id"]}, m)
 
-        user = self.canvas.get_user(1)
+        user = await self.canvas.get_user(1)
 
         with self.assertRaises(AttributeError):
             obj_or_str(user, "display_name", (User,))
 
-    def test_obj_or_str_mult_obj(self, m):
+    async def test_obj_or_str_mult_obj(self, m):
         register_uris({"user": ["get_by_id"]}, m)
 
-        user = self.canvas.get_user(1)
+        user = await self.canvas.get_user(1)
 
         user_name = obj_or_str(user, "name", (CourseNickname, User))
 
         self.assertIsInstance(user_name, str)
 
-    def test_obj_or_str_invalid_attr_parameter(self, m):
+    async def test_obj_or_str_invalid_attr_parameter(self, m):
         register_uris({"user": ["get_by_id"]}, m)
 
-        user = self.canvas.get_user(1)
+        user = await self.canvas.get_user(1)
 
         with self.assertRaises(TypeError):
             obj_or_str(user, user, (User,))

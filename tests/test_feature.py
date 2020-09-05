@@ -1,19 +1,20 @@
 import unittest
+from aiohttp.resolver import aiodns_default
 
-import requests_mock
+from aioresponses import aioresponses
 
 from canvasaio import Canvas
 from canvasaio.feature import Feature, FeatureFlag
 from tests import settings
-from tests.util import register_uris
+from tests.util import register_uris, aioresponse_mock
 
 
-@requests_mock.Mocker()
-class TestFeature(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestFeature(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             requires = {
                 "account": ["get_by_id", "get_features"],
                 "course": ["get_by_id", "get_features"],
@@ -21,12 +22,15 @@ class TestFeature(unittest.TestCase):
             }
             register_uris(requires, m)
 
-            self.account = self.canvas.get_account(1)
-            self.course = self.canvas.get_course(1)
-            self.user = self.canvas.get_user(1)
-            self.feature_account = self.account.get_features()[0]
-            self.feature_course = self.course.get_features()[0]
-            self.feature_user = self.user.get_features()[0]
+            self.account = await self.canvas.get_account(1)
+            self.course = await self.canvas.get_course(1)
+            self.user = await self.canvas.get_user(1)
+            self.feature_account = await self.account.get_features()[0]
+            self.feature_course = await self.course.get_features()[0]
+            self.feature_user = await self.user.get_features()[0]
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):
@@ -64,12 +68,12 @@ class TestFeature(unittest.TestCase):
             feature._parent_type
 
 
-@requests_mock.Mocker()
-class TestFeatureFlag(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestFeatureFlag(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             requires = {
                 "account": ["get_by_id", "get_features", "get_feature_flag"],
                 "course": ["get_by_id", "get_features", "get_feature_flag"],
@@ -77,17 +81,20 @@ class TestFeatureFlag(unittest.TestCase):
             }
             register_uris(requires, m)
 
-            self.account = self.canvas.get_account(1)
-            self.course = self.canvas.get_course(1)
-            self.user = self.canvas.get_user(1)
-            self.feature_account = self.account.get_features()[0]
-            self.feature_course = self.course.get_features()[0]
-            self.feature_user = self.user.get_features()[0]
-            self.feature_flag_account = self.account.get_feature_flag(
+            self.account = await self.canvas.get_account(1)
+            self.course = await self.canvas.get_course(1)
+            self.user = await self.canvas.get_user(1)
+            self.feature_account = await self.account.get_features()[0]
+            self.feature_course = await self.course.get_features()[0]
+            self.feature_user = await self.user.get_features()[0]
+            self.feature_flag_account = await self.account.get_feature_flag(
                 self.feature_account
             )
-            self.feature_flag_course = self.course.get_feature_flag(self.feature_course)
-            self.feature_flag_user = self.user.get_feature_flag(self.feature_user)
+            self.feature_flag_course = await self.course.get_feature_flag(self.feature_course)
+            self.feature_flag_user = await self.user.get_feature_flag(self.feature_user)
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):
@@ -95,39 +102,39 @@ class TestFeatureFlag(unittest.TestCase):
         self.assertIsInstance(string, str)
 
     # delete()
-    def test_delete_account(self, m):
+    async def test_delete_account(self, m):
         register_uris({"account": ["delete_feature_flag"]}, m)
-        delete_flag = self.feature_flag_account.delete(self.feature_account)
+        delete_flag = await self.feature_flag_account.delete(self.feature_account)
 
         self.assertIsInstance(delete_flag, FeatureFlag)
 
-    def test_delete_course(self, m):
+    async def test_delete_course(self, m):
         register_uris({"course": ["delete_feature_flag"]}, m)
-        delete_flag = self.feature_flag_course.delete(self.feature_course)
+        delete_flag = await self.feature_flag_course.delete(self.feature_course)
 
         self.assertIsInstance(delete_flag, FeatureFlag)
 
-    def test_delete_user(self, m):
+    async def test_delete_user(self, m):
         register_uris({"user": ["delete_feature_flag"]}, m)
-        delete_flag = self.feature_flag_user.delete(self.feature_user)
+        delete_flag = await self.feature_flag_user.delete(self.feature_user)
 
         self.assertIsInstance(delete_flag, FeatureFlag)
 
     # set_feature_flag()
-    def test_set_feature_flag_account(self, m):
+    async def test_set_feature_flag_account(self, m):
         register_uris({"account": ["set_feature_flag"]}, m)
-        update_flag = self.feature_flag_account.set_feature_flag(self.feature_account)
+        update_flag = await self.feature_flag_account.set_feature_flag(self.feature_account)
 
         self.assertIsInstance(update_flag, FeatureFlag)
 
-    def test_set_feature_flag_course(self, m):
+    async def test_set_feature_flag_course(self, m):
         register_uris({"course": ["set_feature_flag"]}, m)
-        update_flag = self.feature_flag_course.set_feature_flag(self.feature_course)
+        update_flag = await self.feature_flag_course.set_feature_flag(self.feature_course)
 
         self.assertIsInstance(update_flag, FeatureFlag)
 
-    def test_set_feature_flag_user(self, m):
+    async def test_set_feature_flag_user(self, m):
         register_uris({"user": ["set_feature_flag"]}, m)
-        update_flag = self.feature_flag_user.set_feature_flag(self.feature_user)
+        update_flag = await self.feature_flag_user.set_feature_flag(self.feature_user)
 
         self.assertIsInstance(update_flag, FeatureFlag)

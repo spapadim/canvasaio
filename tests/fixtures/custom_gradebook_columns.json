@@ -14,7 +14,10 @@
 	},
 	"get_column_entries": {
 		"method": "GET",
-		"endpoint": "courses/1/custom_gradebook_columns/2/data",
+		"endpoint": {
+			"url": "courses/1/custom_gradebook_columns/2/data",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"content": "Example content",

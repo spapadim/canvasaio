@@ -8,7 +8,7 @@ class Folder(CanvasObject):
     def __str__(self):
         return "{}".format(self.full_name)
 
-    def copy_file(self, source_file, **kwargs):
+    async def copy_file(self, source_file, **kwargs):
         """
         Copies a file into the current folder.
 
@@ -25,15 +25,15 @@ class Folder(CanvasObject):
         file_id = obj_or_id(source_file, "source_file", (File,))
         kwargs["source_file_id"] = file_id
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "folders/{}/copy_file".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return File(self._requester, response.json())
+        return File(self._requester, await response.json())
 
-    def create_folder(self, name, **kwargs):
+    async def create_folder(self, name, **kwargs):
         """
         Creates a folder within this folder.
 
@@ -50,9 +50,9 @@ class Folder(CanvasObject):
             name=name,
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Folder(self._requester, response.json())
+        return Folder(self._requester, await response.json())
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Remove this folder. You can only delete empty folders unless you set the
           'force' flag.
@@ -62,10 +62,10 @@ class Folder(CanvasObject):
 
         :rtype: :class:`canvasaio.folder.Folder`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE", "folders/{}".format(self.id), _kwargs=combine_kwargs(**kwargs)
         )
-        return Folder(self._requester, response.json())
+        return Folder(self._requester, await response.json())
 
     def get_files(self, **kwargs):
         """
@@ -101,7 +101,7 @@ class Folder(CanvasObject):
             Folder, self._requester, "GET", "folders/{}/folders".format(self.id)
         )
 
-    def update(self, **kwargs):
+    async def update(self, **kwargs):
         """
         Updates a folder.
 
@@ -110,16 +110,17 @@ class Folder(CanvasObject):
 
         :rtype: :class:`canvasaio.folder.Folder`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT", "folders/{}".format(self.id), _kwargs=combine_kwargs(**kwargs)
         )
 
-        if "name" in response.json():
-            super(Folder, self).set_attributes(response.json())
+        response_json = await response.json()
+        if "name" in response_json:
+            super(Folder, self).set_attributes(response_json)
 
-        return Folder(self._requester, response.json())
+        return Folder(self._requester, response_json)
 
-    def upload(self, file, **kwargs):
+    async def upload(self, file, **kwargs):
         """
         Upload a file to this folder.
 
@@ -133,4 +134,4 @@ class Folder(CanvasObject):
         :rtype: tuple
         """
         my_path = "folders/{}/files".format(self.id)
-        return Uploader(self._requester, my_path, file, **kwargs).start()
+        return await Uploader(self._requester, my_path, file, **kwargs).start()

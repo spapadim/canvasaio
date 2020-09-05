@@ -6,7 +6,7 @@ class EnrollmentTerm(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.name, self.id)
 
-    def delete(self):
+    async def delete(self):
         """
         Delete this Enrollment Term.
 
@@ -15,12 +15,12 @@ class EnrollmentTerm(CanvasObject):
 
         :rtype: :class:`canvasaio.enrollment_term.EnrollmentTerm`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE", "accounts/{}/terms/{}".format(self.account_id, self.id)
         )
-        return EnrollmentTerm(self._requester, response.json())
+        return EnrollmentTerm(self._requester, await response.json())
 
-    def edit(self, **kwargs):
+    async def edit(self, **kwargs):
         """
         Modify this Enrollment Term.
 
@@ -29,10 +29,10 @@ class EnrollmentTerm(CanvasObject):
 
         :rtype: :class:`canvasaio.enrollment_term.EnrollmentTerm`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "accounts/{}/terms/{}".format(self.account_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return EnrollmentTerm(self._requester, response.json())
+        return EnrollmentTerm(self._requester, await response.json())

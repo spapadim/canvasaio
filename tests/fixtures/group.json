@@ -97,7 +97,10 @@
 	},
 	"get_pages": {
 		"method": "GET",
-		"endpoint": "groups/1/pages",
+		"endpoint": {
+			"url": "groups/1/pages",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -156,7 +159,10 @@
 	},
 	"invite": {
 		"method": "POST",
-		"endpoint": "groups/1/invite",
+		"endpoint": {
+			"url": "groups/1/invite",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 4,
@@ -179,7 +185,10 @@
 	},
 	"list_users": {
 		"method": "GET",
-		"endpoint": "groups/1/users",
+		"endpoint": {
+			"url": "groups/1/users",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -255,7 +264,10 @@
 	},
 	"list_memberships": {
 		"method": "GET",
-		"endpoint": "groups/1/memberships",
+		"endpoint": {
+			"url": "groups/1/memberships",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -308,6 +320,7 @@
 	},
 	"get_membership": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "groups/1/users/1",
 		"data": {
 			"id": 1,
@@ -322,6 +335,7 @@
 	},
 	"create_membership": {
 		"method": "POST",
+		"repeat": true,
 		"endpoint": "groups/1/memberships",
 		"data": {
 			"id": 1,
@@ -336,6 +350,7 @@
 	},
 	"update_membership_user": {
 		"method": "PUT",
+		"repeat": true,
 		"endpoint": "groups/1/users/1",
 		"data": {
 			"id": 1,
@@ -364,6 +379,7 @@
 	},
 	"remove_user": {
 		"method": "DELETE",
+		"repeat": true,
 		"endpoint": "groups/1/users/1",
 		"data": {},
 		"status_code": 200
@@ -440,7 +456,10 @@
 	},
 	"category_list_groups": {
 		"method": "GET",
-		"endpoint": "group_categories/1/groups",
+		"endpoint": {
+			"url": "group_categories/1/groups",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -489,7 +508,10 @@
 	},
 	"category_list_users": {
 		"method": "GET",
-		"endpoint": "group_categories/1/users",
+		"endpoint": {
+			"url": "group_categories/1/users",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"user_id": 1,
@@ -619,6 +641,7 @@
 	},
 	"get_discussion_topic": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "groups/1/discussion_topics/1",
 		"data": {
 				"id": 1,
@@ -628,6 +651,7 @@
 	},
 	"get_file": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "groups/1/files/1",
 		"data": {
 			"id": 1,
@@ -638,6 +662,7 @@
 	},
 	"get_full_discussion_topic": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "groups/1/discussion_topics/1/view",
 		"data": {
 			"id": 1,
@@ -655,7 +680,10 @@
 	},
 	"get_discussion_topics": {
 		"method": "GET",
-		"endpoint": "groups/1/discussion_topics",
+		"endpoint": {
+			"url": "groups/1/discussion_topics",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -688,6 +716,7 @@
 	},
 	"delete_external_feed": {
 		"method": "DELETE",
+		"repeat": true,
 		"endpoint": "groups/1/external_feeds/1",
 		"data": {
 			"id": 1,
@@ -698,7 +727,10 @@
 	},
 	"list_external_feeds": {
 		"method": "GET",
-		"endpoint": "groups/1/external_feeds",
+		"endpoint": {
+			"url": "groups/1/external_feeds",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -725,7 +757,10 @@
 	},
 	"list_group_files": {
 		"method": "GET",
-		"endpoint": "groups/1/files",
+		"endpoint": {
+			"url": "groups/1/files",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -762,6 +797,7 @@
 	},
 	"get_folder": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "groups/1/folders/1",
 		"data": {
 			"id": 1,
@@ -774,7 +810,10 @@
   },
   "list_folders": {
 	"method": "GET",
-	"endpoint": "groups/1/folders",
+	"endpoint": {
+		"url": "groups/1/folders",
+		"ignore_query": true
+	},
 	"data": [
 	  {
 		"id": 2,
@@ -795,7 +834,10 @@
   },
   "list_tabs": {
 		"method": "GET",
-		"endpoint": "groups/1/tabs",
+		"endpoint": {
+			"url": "groups/1/tabs",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": "home",
@@ -818,7 +860,10 @@
 	},
 	"get_collaborations": {
 		"method": "GET",
-		"endpoint": "groups/1/collaborations",
+		"endpoint": {
+			"url": "groups/1/collaborations",
+			"ignore_query": true
+		},
 		"data": {
 			"collaborations": [
 				{
@@ -880,7 +925,10 @@
 	},
 	"get_content_migration_multiple": {
 		"method": "GET",
-		"endpoint": "groups/1/content_migrations",
+		"endpoint": {
+			"url": "groups/1/content_migrations",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -897,7 +945,10 @@
 	},
 	"get_migration_systems_multiple": {
 		"method": "GET",
-		"endpoint": "groups/1/content_migrations/migrators",
+		"endpoint": {
+			"url": "groups/1/content_migrations/migrators",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"type": "dummy_importer",
@@ -914,7 +965,10 @@
 	},
 	"multiple_content_exports": {
 		"method": "GET",
-		"endpoint": "groups/1/content_exports",
+		"endpoint": {
+			"url": "groups/1/content_exports",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"user_id": 1,
@@ -971,7 +1025,10 @@
 	},
 	"get_licenses": {
 		"method": "GET",
-		"endpoint": "groups/1/content_licenses",
+		"endpoint": {
+			"url": "groups/1/content_licenses",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": "private",
@@ -988,7 +1045,10 @@
 	},
     "resolve_path": {
 		"method": "GET",
-		"endpoint": "groups/1/folders/by_path/Folder_Level_1/Folder_Level_2/Folder_Level_3",
+		"endpoint": {
+			"url": "groups/1/folders/by_path/Folder_Level_1/Folder_Level_2/Folder_Level_3",
+			"ignore_query": true
+		},
 		"data": [
             {
 				"id": 2,
@@ -1023,7 +1083,10 @@
 	},
     "resolve_path_null": {
 		"method": "GET",
-		"endpoint": "groups/1/folders/by_path",
+		"endpoint": {
+			"url": "groups/1/folders/by_path",
+			"ignore_query": true
+		},
 		"data": [
             {
 				"id": 2,

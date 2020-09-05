@@ -7,7 +7,7 @@ class AppointmentGroup(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.title, self.id)
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Delete this appointment group.
 
@@ -16,14 +16,14 @@ class AppointmentGroup(CanvasObject):
 
         :rtype: :class:`canvasaio.appointment_group.AppointmentGroup`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "appointment_groups/{}".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return AppointmentGroup(self._requester, response.json())
+        return AppointmentGroup(self._requester, await response.json())
 
-    def edit(self, appointment_group, **kwargs):
+    async def edit(self, appointment_group, **kwargs):
         """
         Modify this appointment group.
 
@@ -42,13 +42,14 @@ class AppointmentGroup(CanvasObject):
                 "Dictionary with key 'context_codes' is required."
             )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "appointment_groups/{}".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        if "title" in response.json():
-            super(AppointmentGroup, self).set_attributes(response.json())
+        response_json = await response.json()
+        if "title" in response_json:
+            super(AppointmentGroup, self).set_attributes(response_json)
 
-        return AppointmentGroup(self._requester, response.json())
+        return AppointmentGroup(self._requester, response_json)

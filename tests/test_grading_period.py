@@ -1,16 +1,16 @@
 import unittest
 
-import requests_mock
+from aioresponses import aioresponses
 
 from canvasaio import Canvas
 from canvasaio.exceptions import RequiredFieldMissing
 from canvasaio.grading_period import GradingPeriod
-from tests.util import register_uris
+from tests.util import register_uris, aioresponse_mock
 from tests import settings
 
 
-@requests_mock.Mocker()
-class TestGradingPeriod(unittest.TestCase):
+@aioresponse_mock
+class TestGradingPeriod(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
@@ -19,16 +19,18 @@ class TestGradingPeriod(unittest.TestCase):
             {"title": "grading period 1", "id": 1, "course_id": 1},
         )
 
-    def test_str(self, m):
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
+    def test_str(self, m):
         test_str = str(self.grading_period)
         self.assertIsInstance(test_str, str)
 
     # update()
-    def test_update(self, m):
+    async def test_update(self, m):
         register_uris({"grading_period": ["update"]}, m)
 
-        edited_grading_period = self.grading_period.update(
+        edited_grading_period = await self.grading_period.update(
             grading_period=[
                 {
                     "start_date": "2019-06-10T06:00:00Z",
@@ -48,11 +50,11 @@ class TestGradingPeriod(unittest.TestCase):
         self.assertEqual(edited_grading_period.end_date, "2019-08-23T06:00:00Z")
 
     # Check that the appropriate exception is raised when no list is given.
-    def test_update_without_list(self, m):
+    async def test_update_without_list(self, m):
         register_uris({"grading_period": ["update"]}, m)
 
         with self.assertRaises(RequiredFieldMissing):
-            self.grading_period.update(
+            await self.grading_period.update(
                 grading_period={
                     "start_date": "2019-06-10T06:00:00Z",
                     "end_date": "2019-06-15T06:00:00Z",
@@ -60,24 +62,24 @@ class TestGradingPeriod(unittest.TestCase):
             )
 
     # Check that the grading_period that is passed has a start date
-    def test_update_without_start_date(self, m):
+    async def test_update_without_start_date(self, m):
         register_uris({"grading_period": ["update"]}, m)
 
         with self.assertRaises(RequiredFieldMissing):
-            self.grading_period.update(
+            await self.grading_period.update(
                 grading_period=[{"end_date": "2019-06-15T06:00:00Z"}]
             )
 
     # Check that the appropriate exception is raised when no list is given.
-    def test_update_without_end_date(self, m):
+    async def test_update_without_end_date(self, m):
         register_uris({"grading_period": ["update"]}, m)
 
         with self.assertRaises(RequiredFieldMissing):
-            self.grading_period.update(
+            await self.grading_period.update(
                 grading_period=[{"start_date": "2019-06-10T06:00:00Z"}]
             )
 
     # delete()
-    def test_delete(self, m):
+    async def test_delete(self, m):
         register_uris({"grading_period": ["delete"]}, m)
-        self.assertEqual(self.grading_period.delete(), 204)
+        self.assertEqual(await self.grading_period.delete(), 204)

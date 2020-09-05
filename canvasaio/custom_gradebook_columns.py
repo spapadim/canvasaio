@@ -10,7 +10,7 @@ class CustomGradebookColumn(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.title, self.id)
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Permanently delete a custom column.
 
@@ -18,13 +18,13 @@ class CustomGradebookColumn(CanvasObject):
             <https://canvas.instructure.com/doc/api/custom_gradebook_columns.html#method.custom_gradebook_columns_api.destroy>`_
         :rtype: :class:`canvasaio.custom_gradebook_columns.CustomGradebookColumn`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "courses/{}/custom_gradebook_columns/{}".format(self.course_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return CustomGradebookColumn(self._requester, response.json())
+        return CustomGradebookColumn(self._requester, await response.json())
 
     def get_column_entries(self, **kwargs):
         """
@@ -47,7 +47,7 @@ class CustomGradebookColumn(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def reorder_custom_columns(self, order, **kwargs):
+    async def reorder_custom_columns(self, order, **kwargs):
         """
         Put the given columns in a specific order based on given parameter.
 
@@ -68,16 +68,16 @@ class CustomGradebookColumn(CanvasObject):
         if not isinstance(order, str) or "," not in order:
             raise ValueError("Param `order` must be a list, tuple, or string.")
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/custom_gradebook_columns/reorder".format(self.course_id),
             _kwargs=combine_kwargs(**kwargs),
             order=order,
         )
 
-        return response.json().get("reorder")
+        return (await response.json()).get("reorder")
 
-    def update_custom_column(self, **kwargs):
+    async def update_custom_column(self, **kwargs):
         """
         Update a CustomColumn object.
 
@@ -87,14 +87,15 @@ class CustomGradebookColumn(CanvasObject):
         :rtype: :class:`canvasaio.custom_gradebook_columns.CustomGradebookColumn`
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/custom_gradebook_columns/{}".format(self.course_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        if response.json().get("title"):
-            super(CustomGradebookColumn, self).set_attributes(response.json())
+        response_json = await response.json()
+        if response_json.get("title"):
+            super(CustomGradebookColumn, self).set_attributes(response_json)
 
         return self
 
@@ -103,7 +104,7 @@ class ColumnData(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.user_id, self.content)
 
-    def update_column_data(self, column_data, **kwargs):
+    async def update_column_data(self, column_data, **kwargs):
         """
         Sets the content of a custom column.
 
@@ -118,7 +119,7 @@ class ColumnData(CanvasObject):
 
         kwargs["column_data"] = column_data
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/custom_gradebook_columns/{}/data/{}".format(
                 self.course_id, self.gradebook_column_id, self.user_id
@@ -126,7 +127,8 @@ class ColumnData(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        if response.json().get("content"):
-            super(ColumnData, self).set_attributes(response.json())
+        response_json = await response.json()
+        if response_json.get("content"):
+            super(ColumnData, self).set_attributes(response_json)
 
         return self

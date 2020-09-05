@@ -1,27 +1,30 @@
 import unittest
 from os.path import isfile
 
-import requests_mock
+from aioresponses import aioresponses
 
 from canvasaio import Canvas
 from canvasaio.file import File
 from tests import settings
 from tests.util import cleanup_file
-from tests.util import register_uris
+from tests.util import register_uris, aioresponse_mock
 
 
-@requests_mock.Mocker()
-class TestFile(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestFile(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             register_uris(
                 {"course": ["get_by_id", "list_course_files", "list_course_files2"]}, m
             )
 
-            self.course = self.canvas.get_course(1)
-            self.file = self.course.get_files()[0]
+            self.course = await self.canvas.get_course(1)
+            self.file = await self.course.get_files()[0]
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):
@@ -29,20 +32,20 @@ class TestFile(unittest.TestCase):
         self.assertIsInstance(string, str)
 
     # delete()
-    def test_delete_file(self, m):
+    async def test_delete_file(self, m):
         register_uris({"file": ["delete_file"]}, m)
 
-        deleted_file = self.file.delete()
+        deleted_file = await self.file.delete()
 
         self.assertIsInstance(deleted_file, File)
         self.assertTrue(hasattr(deleted_file, "display_name"))
         self.assertEqual(deleted_file.display_name, "Bad File.docx")
 
     # download()
-    def test_download_file(self, m):
+    async def test_download_file(self, m):
         register_uris({"file": ["file_download"]}, m)
         try:
-            self.file.download("canvasaio_file_download_test.txt")
+            await self.file.download("canvasaio_file_download_test.txt")
             self.assertTrue(isfile("canvasaio_file_download_test.txt"))
             with open("canvasaio_file_download_test.txt") as downloaded_file:
                 self.assertEqual(downloaded_file.read(), '"file contents are here"')
@@ -50,7 +53,7 @@ class TestFile(unittest.TestCase):
             cleanup_file("canvasaio_file_download_test.txt")
 
     # contents()
-    def test_contents_file(self, m):
+    async def test_contents_file(self, m):
         register_uris({"file": ["file_contents"]}, m)
-        contents = self.file.get_contents()
+        contents = await self.file.get_contents()
         self.assertEqual(contents, '"Hello there"')

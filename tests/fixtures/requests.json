@@ -70,6 +70,7 @@
 	},
 	"get": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "fake_get_request",
 		"data": {},
 		"status_code": 200

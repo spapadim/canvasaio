@@ -7,7 +7,7 @@ class Login(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.id, self.unique_id)
 
-    def delete(self):
+    async def delete(self):
         """
         Delete an existing login.
 
@@ -16,12 +16,12 @@ class Login(CanvasObject):
 
         :rtype: :class:`canvasaio.login.Login`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE", "users/{}/logins/{}".format(self.user_id, self.id)
         )
-        return Login(self._requester, response.json())
+        return Login(self._requester, await response.json())
 
-    def edit(self, **kwargs):
+    async def edit(self, **kwargs):
         """
         Update an existing login for a user in the given account.
 
@@ -30,12 +30,12 @@ class Login(CanvasObject):
 
         :rtype: :class:`canvasaio.login.Login`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "accounts/{}/logins/{}".format(self.account_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Login(self._requester, response.json())
+        return Login(self._requester, await response.json())
 
     def get_authentication_events(self, **kwargs):
         """

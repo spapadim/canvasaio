@@ -1,6 +1,6 @@
 import unittest
 
-import requests_mock
+from aioresponses import aioresponses
 
 from canvasaio import Canvas
 from canvasaio.account import Account
@@ -10,15 +10,15 @@ from canvasaio.group import Group
 from canvasaio.progress import Progress
 from canvasaio.user import User
 from tests import settings
-from tests.util import register_uris
+from tests.util import register_uris, aioresponse_mock
 
 
-@requests_mock.Mocker()
-class TestContentMigration(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestContentMigration(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             requires = {
                 "course": ["get_by_id", "get_content_migration_single"],
                 "group": ["get_by_id", "get_content_migration_single"],
@@ -27,15 +27,18 @@ class TestContentMigration(unittest.TestCase):
             }
             register_uris(requires, m)
 
-            self.account = self.canvas.get_account(1)
-            self.course = self.canvas.get_course(1)
-            self.group = self.canvas.get_group(1)
-            self.user = self.canvas.get_user(1)
+            self.account = await self.canvas.get_account(1)
+            self.course = await self.canvas.get_course(1)
+            self.group = await self.canvas.get_group(1)
+            self.user = await self.canvas.get_user(1)
 
-            self.content_migration = self.account.get_content_migration(1)
-            self.content_migration_course = self.course.get_content_migration(1)
-            self.content_migration_group = self.group.get_content_migration(1)
-            self.content_migration_user = self.user.get_content_migration(1)
+            self.content_migration = await self.account.get_content_migration(1)
+            self.content_migration_course = await self.course.get_content_migration(1)
+            self.content_migration_group = await self.group.get_content_migration(1)
+            self.content_migration_user = await self.user.get_content_migration(1)
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):
@@ -79,21 +82,22 @@ class TestContentMigration(unittest.TestCase):
             migration._parent_id
 
     # get_migration_issue()
-    def test_get_migration_issue(self, m):
+    async def test_get_migration_issue(self, m):
         register_uris({"content_migration": ["get_migration_issue_single"]}, m)
 
-        issue = self.content_migration.get_migration_issue(1)
+        issue = await self.content_migration.get_migration_issue(1)
         self.assertIsInstance(issue, MigrationIssue)
         self.assertTrue(hasattr(issue, "id"))
         self.assertEqual(issue.id, 1)
 
     # get_migration_issues()
-    def test_get_migration_issues(self, m):
+    async def test_get_migration_issues(self, m):
         register_uris({"content_migration": ["get_migration_issue_multiple"]}, m)
 
-        issues = self.content_migration.get_migration_issues()
+        response = self.content_migration.get_migration_issues()
+        issues = [iss async for iss in response]
 
-        self.assertEqual(len(list(issues)), 2)
+        self.assertEqual(len(issues), 2)
 
         self.assertIsInstance(issues[0], MigrationIssue)
         self.assertTrue(hasattr(issues[0], "id"))
@@ -103,69 +107,69 @@ class TestContentMigration(unittest.TestCase):
         self.assertEqual(issues[1].id, 2)
 
     # get_parent()
-    def test_get_parent_account(self, m):
+    async def test_get_parent_account(self, m):
         register_uris({"content_migration": ["get_parent_account"]}, m)
 
-        account = self.content_migration.get_parent()
+        account = await self.content_migration.get_parent()
         self.assertIsInstance(account, Account)
         self.assertTrue(hasattr(account, "id"))
         self.assertEqual(account.id, 1)
 
-    def test_get_parent_course(self, m):
+    async def test_get_parent_course(self, m):
         register_uris({"content_migration": ["get_parent_course"]}, m)
 
-        course = self.content_migration_course.get_parent()
+        course = await self.content_migration_course.get_parent()
         self.assertIsInstance(course, Course)
         self.assertTrue(hasattr(course, "id"))
         self.assertEqual(course.id, 1)
 
-    def test_get_parent_group(self, m):
+    async def test_get_parent_group(self, m):
         register_uris({"content_migration": ["get_parent_group"]}, m)
 
-        group = self.content_migration_group.get_parent()
+        group = await self.content_migration_group.get_parent()
         self.assertIsInstance(group, Group)
         self.assertTrue(hasattr(group, "id"))
         self.assertEqual(group.id, 1)
 
-    def test_get_parent_user(self, m):
+    async def test_get_parent_user(self, m):
         register_uris({"content_migration": ["get_parent_user"]}, m)
 
-        user = self.content_migration_user.get_parent()
+        user = await self.content_migration_user.get_parent()
         self.assertIsInstance(user, User)
         self.assertTrue(hasattr(user, "id"))
         self.assertEqual(user.id, 1)
 
     # get_progress()
-    def test_get_progress(self, m):
+    async def test_get_progress(self, m):
         register_uris({"content_migration": ["get_progress"]}, m)
 
-        progress = self.content_migration.get_progress()
+        progress = await self.content_migration.get_progress()
         self.assertIsInstance(progress, Progress)
         self.assertTrue(hasattr(progress, "id"))
         self.assertEqual(progress.id, 1)
 
     # update()
-    def test_update(self, m):
+    async def test_update(self, m):
         register_uris({"content_migration": ["update"]}, m)
 
-        worked = self.content_migration.update()
+        worked = await self.content_migration.update()
         self.assertTrue(worked)
         self.assertTrue(hasattr(self.content_migration, "migration_type"))
         self.assertEqual(self.content_migration.migration_type, "dummy_importer")
 
-    def test_update_fail(self, m):
+    async def test_update_fail(self, m):
         register_uris({"content_migration": ["update_fail"]}, m)
 
-        worked = self.content_migration.update()
+        worked = await self.content_migration.update()
         self.assertFalse(worked)
 
 
-@requests_mock.Mocker()
-class TestMigrationIssue(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestMigrationIssue(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             requires = {
                 "course": ["get_by_id", "get_content_migration_single"],
                 "group": ["get_by_id", "get_content_migration_single"],
@@ -180,26 +184,29 @@ class TestMigrationIssue(unittest.TestCase):
             }
             register_uris(requires, m)
 
-            self.account = self.canvas.get_account(1)
-            self.course = self.canvas.get_course(1)
-            self.group = self.canvas.get_group(1)
-            self.user = self.canvas.get_user(1)
+            self.account = await self.canvas.get_account(1)
+            self.course = await self.canvas.get_course(1)
+            self.group = await self.canvas.get_group(1)
+            self.user = await self.canvas.get_user(1)
 
-            self.content_migration = self.account.get_content_migration(1)
-            self.content_migration_course = self.course.get_content_migration(1)
-            self.content_migration_group = self.group.get_content_migration(1)
-            self.content_migration_user = self.user.get_content_migration(1)
+            self.content_migration = await self.account.get_content_migration(1)
+            self.content_migration_course = await self.course.get_content_migration(1)
+            self.content_migration_group = await self.group.get_content_migration(1)
+            self.content_migration_user = await self.user.get_content_migration(1)
 
-            self.migration_issue = self.content_migration.get_migration_issue(1)
+            self.migration_issue = await self.content_migration.get_migration_issue(1)
             self.migration_issue_course = (
-                self.content_migration_course.get_migration_issue(1)
+                await self.content_migration_course.get_migration_issue(1)
             )
             self.migration_issue_group = (
-                self.content_migration_group.get_migration_issue(1)
+                await self.content_migration_group.get_migration_issue(1)
             )
-            self.migration_issue_user = self.content_migration_user.get_migration_issue(
+            self.migration_issue_user = await self.content_migration_user.get_migration_issue(
                 1
             )
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):
@@ -207,27 +214,27 @@ class TestMigrationIssue(unittest.TestCase):
         self.assertIsInstance(string, str)
 
     # update()
-    def test_update(self, m):
+    async def test_update(self, m):
         register_uris({"content_migration": ["update_issue"]}, m)
 
-        worked = self.migration_issue.update()
+        worked = await self.migration_issue.update()
         self.assertTrue(worked)
         self.assertTrue(hasattr(self.migration_issue, "id"))
         self.assertEqual(self.migration_issue.id, 1)
 
-    def test_update_fail(self, m):
+    async def test_update_fail(self, m):
         register_uris({"content_migration": ["update_issue_fail"]}, m)
 
-        worked = self.migration_issue.update()
+        worked = await self.migration_issue.update()
         self.assertFalse(worked)
 
 
-@requests_mock.Mocker()
-class TestMigrator(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestMigrator(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             requires = {
                 "course": ["get_by_id", "get_migration_systems_multiple"],
                 "group": ["get_by_id", "get_migration_systems_multiple"],
@@ -242,15 +249,18 @@ class TestMigrator(unittest.TestCase):
             }
             register_uris(requires, m)
 
-            self.account = self.canvas.get_account(1)
-            self.course = self.canvas.get_course(1)
-            self.group = self.canvas.get_group(1)
-            self.user = self.canvas.get_user(1)
+            self.account = await self.canvas.get_account(1)
+            self.course = await self.canvas.get_course(1)
+            self.group = await self.canvas.get_group(1)
+            self.user = await self.canvas.get_user(1)
 
-            self.migrator = self.account.get_migration_systems()[0]
-            self.migrator_course = self.course.get_migration_systems()[0]
-            self.migrator_group = self.group.get_migration_systems()[0]
-            self.migrator_user = self.user.get_migration_systems()[0]
+            self.migrator = await self.account.get_migration_systems()[0]
+            self.migrator_course = await self.course.get_migration_systems()[0]
+            self.migrator_group = await self.group.get_migration_systems()[0]
+            self.migrator_user = await self.user.get_migration_systems()[0]
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):

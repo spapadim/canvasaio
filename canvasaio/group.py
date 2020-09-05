@@ -14,7 +14,7 @@ class Group(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.name, self.id)
 
-    def create_content_migration(self, migration_type, **kwargs):
+    async def create_content_migration(self, migration_type, **kwargs):
         """
         Create a content migration.
 
@@ -35,18 +35,18 @@ class Group(CanvasObject):
         else:
             raise TypeError("Parameter migration_type must be of type Migrator or str")
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "groups/{}/content_migrations".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"group_id": self.id})
 
         return ContentMigration(self._requester, response_json)
 
-    def create_discussion_topic(self, **kwargs):
+    async def create_discussion_topic(self, **kwargs):
         """
         Creates a new discussion topic for the course or group.
 
@@ -55,18 +55,18 @@ class Group(CanvasObject):
 
         :rtype: :class:`canvasaio.discussion_topic.DiscussionTopic`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "groups/{}/discussion_topics".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"group_id": self.id})
 
         return DiscussionTopic(self._requester, response_json)
 
-    def create_external_feed(self, url, **kwargs):
+    async def create_external_feed(self, url, **kwargs):
         """
         Create a new external feed for the group.
 
@@ -79,15 +79,15 @@ class Group(CanvasObject):
         """
         from canvasaio.external_feed import ExternalFeed
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "groups/{}/external_feeds".format(self.id),
             url=url,
             _kwargs=combine_kwargs(**kwargs),
         )
-        return ExternalFeed(self._requester, response.json())
+        return ExternalFeed(self._requester, await response.json())
 
-    def create_folder(self, name, **kwargs):
+    async def create_folder(self, name, **kwargs):
         """
         Creates a folder in this group.
 
@@ -98,15 +98,15 @@ class Group(CanvasObject):
         :type name: str
         :rtype: :class:`canvasaio.folder.Folder`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "groups/{}/folders".format(self.id),
             name=name,
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Folder(self._requester, response.json())
+        return Folder(self._requester, await response.json())
 
-    def create_membership(self, user, **kwargs):
+    async def create_membership(self, user, **kwargs):
         """
         Join, or request to join, a group, depending on the join_level of the group.
         If the membership or join request already exists, then it is simply returned.
@@ -123,15 +123,15 @@ class Group(CanvasObject):
 
         user_id = obj_or_id(user, "user", (User,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "groups/{}/memberships".format(self.id),
             user_id=user_id,
             _kwargs=combine_kwargs(**kwargs),
         )
-        return GroupMembership(self._requester, response.json())
+        return GroupMembership(self._requester, await response.json())
 
-    def create_page(self, wiki_page, **kwargs):
+    async def create_page(self, wiki_page, **kwargs):
         """
         Create a new wiki page.
 
@@ -150,16 +150,16 @@ class Group(CanvasObject):
         else:
             raise RequiredFieldMissing("Dictionary with key 'title' is required.")
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST", "groups/{}/pages".format(self.id), _kwargs=combine_kwargs(**kwargs)
         )
 
-        page_json = response.json()
+        page_json = await response.json()
         page_json.update({"group_id": self.id})
 
         return Page(self._requester, page_json)
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Delete a group.
 
@@ -168,12 +168,12 @@ class Group(CanvasObject):
 
         :rtype: :class:`canvasaio.group.Group`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE", "groups/{}".format(self.id), _kwargs=combine_kwargs(**kwargs)
         )
-        return Group(self._requester, response.json())
+        return Group(self._requester, await response.json())
 
-    def delete_external_feed(self, feed, **kwargs):
+    async def delete_external_feed(self, feed, **kwargs):
         """
         Deletes the external feed.
 
@@ -189,14 +189,14 @@ class Group(CanvasObject):
 
         feed_id = obj_or_id(feed, "feed", (ExternalFeed,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "groups/{}/external_feeds/{}".format(self.id, feed_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return ExternalFeed(self._requester, response.json())
+        return ExternalFeed(self._requester, await response.json())
 
-    def edit(self, **kwargs):
+    async def edit(self, **kwargs):
         """
         Edit a group.
 
@@ -205,12 +205,12 @@ class Group(CanvasObject):
 
         :rtype: :class:`canvasaio.group.Group`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT", "groups/{}".format(self.id), _kwargs=combine_kwargs(**kwargs)
         )
-        return Group(self._requester, response.json())
+        return Group(self._requester, await response.json())
 
-    def edit_front_page(self, **kwargs):
+    async def edit_front_page(self, **kwargs):
         """
         Update the title or contents of the front page.
 
@@ -221,17 +221,17 @@ class Group(CanvasObject):
         """
         from canvasaio.course import Page
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "groups/{}/front_page".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        page_json = response.json()
+        page_json = await response.json()
         page_json.update({"group_id": self.id})
 
         return Page(self._requester, page_json)
 
-    def export_content(self, export_type, **kwargs):
+    async def export_content(self, export_type, **kwargs):
         """
         Begin a content export job for a group.
 
@@ -247,14 +247,14 @@ class Group(CanvasObject):
 
         kwargs["export_type"] = export_type
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "groups/{}/content_exports".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return ContentExport(self._requester, response.json())
+        return ContentExport(self._requester, await response.json())
 
-    def get_activity_stream_summary(self, **kwargs):
+    async def get_activity_stream_summary(self, **kwargs):
         """
         Return a summary of the current user's global activity stream.
 
@@ -263,14 +263,14 @@ class Group(CanvasObject):
 
         :rtype: dict
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "groups/{}/activity_stream/summary".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()
+        return await response.json()
 
-    def get_assignment_override(self, assignment, **kwargs):
+    async def get_assignment_override(self, assignment, **kwargs):
         """
         Return override for the specified assignment for this group.
 
@@ -286,10 +286,10 @@ class Group(CanvasObject):
 
         assignment_id = obj_or_id(assignment, "assignment", (Assignment,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET", "groups/{}/assignments/{}/override".format(self.id, assignment_id)
         )
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"course_id": self.course_id})
 
         return AssignmentOverride(self._requester, response_json)
@@ -309,10 +309,10 @@ class Group(CanvasObject):
             "GET",
             "groups/{}/collaborations".format(self.id),
             _root="collaborations",
-            kwargs=combine_kwargs(**kwargs),
+            _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_content_export(self, content_export, **kwargs):
+    async def get_content_export(self, content_export, **kwargs):
         """
         Return information about a single content export.
 
@@ -328,13 +328,13 @@ class Group(CanvasObject):
 
         export_id = obj_or_id(content_export, "content_export", (ContentExport,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "groups/{}/content_exports/{}".format(self.id, export_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return ContentExport(self._requester, response.json())
+        return ContentExport(self._requester, await response.json())
 
     def get_content_exports(self, **kwargs):
         """
@@ -353,10 +353,10 @@ class Group(CanvasObject):
             self._requester,
             "GET",
             "groups/{}/content_exports".format(self.id),
-            kwargs=combine_kwargs(**kwargs),
+            _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_content_migration(self, content_migration, **kwargs):
+    async def get_content_migration(self, content_migration, **kwargs):
         """
         Retrive a content migration by its ID
 
@@ -374,13 +374,13 @@ class Group(CanvasObject):
             content_migration, "content_migration", (ContentMigration,)
         )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "groups/{}/content_migrations/{}".format(self.id, migration_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"group_id": self.id})
 
         return ContentMigration(self._requester, response_json)
@@ -406,7 +406,7 @@ class Group(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_discussion_topic(self, topic, **kwargs):
+    async def get_discussion_topic(self, topic, **kwargs):
         """
         Return data on an individual discussion topic.
 
@@ -420,13 +420,13 @@ class Group(CanvasObject):
         """
         topic_id = obj_or_id(topic, "topic", (DiscussionTopic,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "groups/{}/discussion_topics/{}".format(self.id, topic_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"group_id": self.id})
 
         return DiscussionTopic(self._requester, response_json)
@@ -470,7 +470,7 @@ class Group(CanvasObject):
             "groups/{}/external_feeds".format(self.id),
         )
 
-    def get_file(self, file, **kwargs):
+    async def get_file(self, file, **kwargs):
         """
         Return the standard attachment json object for a file.
 
@@ -486,12 +486,12 @@ class Group(CanvasObject):
 
         file_id = obj_or_id(file, "file", (File,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "groups/{}/files/{}".format(self.id, file_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return File(self._requester, response.json())
+        return File(self._requester, await response.json())
 
     def get_files(self, **kwargs):
         """
@@ -513,7 +513,7 @@ class Group(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_folder(self, folder, **kwargs):
+    async def get_folder(self, folder, **kwargs):
         """
         Returns the details for a group's folder
 
@@ -527,12 +527,12 @@ class Group(CanvasObject):
         """
         folder_id = obj_or_id(folder, "folder", (Folder,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "groups/{}/folders/{}".format(self.id, folder_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Folder(self._requester, response.json())
+        return Folder(self._requester, await response.json())
 
     def get_folders(self, **kwargs):
         """
@@ -549,7 +549,7 @@ class Group(CanvasObject):
             Folder, self._requester, "GET", "groups/{}/folders".format(self.id)
         )
 
-    def get_full_discussion_topic(self, topic, **kwargs):
+    async def get_full_discussion_topic(self, topic, **kwargs):
         """
         Return a cached structure of the discussion topic.
 
@@ -563,12 +563,12 @@ class Group(CanvasObject):
         """
         topic_id = obj_or_id(topic, "topic", (DiscussionTopic,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "groups/{}/discussion_topics/{}/view".format(self.id, topic_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()
+        return await response.json()
 
     def get_licenses(self, **kwargs):
         """
@@ -590,7 +590,7 @@ class Group(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_membership(self, user, membership_type, **kwargs):
+    async def get_membership(self, user, membership_type, **kwargs):
         """
         List users in a group.
 
@@ -609,12 +609,12 @@ class Group(CanvasObject):
 
         user_id = obj_or_id(user, "user", (User,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "groups/{}/{}/{}".format(self.id, membership_type, user_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return GroupMembership(self._requester, response.json())
+        return GroupMembership(self._requester, await response.json())
 
     def get_memberships(self, **kwargs):
         """
@@ -654,7 +654,7 @@ class Group(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_page(self, url, **kwargs):
+    async def get_page(self, url, **kwargs):
         """
         Retrieve the contents of a wiki page.
 
@@ -668,12 +668,12 @@ class Group(CanvasObject):
         """
         from canvasaio.course import Page
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "groups/{}/pages/{}".format(self.id, url),
             _kwargs=combine_kwargs(**kwargs),
         )
-        page_json = response.json()
+        page_json = await response.json()
         page_json.update({"group_id": self.id})
 
         return Page(self._requester, page_json)
@@ -761,7 +761,7 @@ class Group(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def preview_html(self, html, **kwargs):
+    async def preview_html(self, html, **kwargs):
         """
         Preview HTML content processed for this course.
 
@@ -772,15 +772,15 @@ class Group(CanvasObject):
         :type html: str
         :rtype: str
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "groups/{}/preview_html".format(self.id),
             html=html,
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json().get("html", "")
+        return (await response.json()).get("html", "")
 
-    def remove_usage_rights(self, **kwargs):
+    async def remove_usage_rights(self, **kwargs):
         """
         Removes the usage rights for specified files that are under the current group scope
 
@@ -789,15 +789,15 @@ class Group(CanvasObject):
 
         :rtype: dict
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "groups/{}/usage_rights".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json()
+        return await response.json()
 
-    def remove_user(self, user, **kwargs):
+    async def remove_user(self, user, **kwargs):
         """
         Leave a group if allowed.
 
@@ -813,14 +813,14 @@ class Group(CanvasObject):
 
         user_id = obj_or_id(user, "user", (User,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "groups/{}/users/{}".format(self.id, user_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return User(self._requester, response.json())
+        return User(self._requester, await response.json())
 
-    def reorder_pinned_topics(self, order, **kwargs):
+    async def reorder_pinned_topics(self, order, **kwargs):
         """
         Puts the pinned discussion topics in the specified order.
         All pinned topics should be included.
@@ -845,13 +845,13 @@ class Group(CanvasObject):
 
         kwargs["order"] = order
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "groups/{}/discussion_topics/reorder".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json().get("reorder")
+        return (await response.json()).get("reorder")
 
     def resolve_path(self, full_path=None, **kwargs):
         """
@@ -886,7 +886,7 @@ class Group(CanvasObject):
                 _kwargs=combine_kwargs(**kwargs),
             )
 
-    def set_usage_rights(self, **kwargs):
+    async def set_usage_rights(self, **kwargs):
         """
         Changes the usage rights for specified files that are under the current group scope
 
@@ -896,15 +896,15 @@ class Group(CanvasObject):
         :rtype: :class:`canvasaio.usage_rights.UsageRights`
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "groups/{}/usage_rights".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return UsageRights(self._requester, response.json())
+        return UsageRights(self._requester, await response.json())
 
-    def show_front_page(self, **kwargs):
+    async def show_front_page(self, **kwargs):
         """
         Retrieve the content of the front page.
 
@@ -915,17 +915,17 @@ class Group(CanvasObject):
         """
         from canvasaio.course import Page
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "groups/{}/front_page".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        page_json = response.json()
+        page_json = await response.json()
         page_json.update({"group_id": self.id})
 
         return Page(self._requester, page_json)
 
-    def update_membership(self, user, **kwargs):
+    async def update_membership(self, user, **kwargs):
         """
         Accept a membership request, or add/remove moderator rights.
 
@@ -941,12 +941,12 @@ class Group(CanvasObject):
 
         user_id = obj_or_id(user, "user", (User,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "groups/{}/users/{}".format(self.id, user_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return GroupMembership(self._requester, response.json())
+        return GroupMembership(self._requester, await response.json())
 
     def upload(self, file, **kwargs):
         """
@@ -976,7 +976,7 @@ class GroupMembership(CanvasObject):
     def __str__(self):
         return "{} - {} ({})".format(self.user_id, self.group_id, self.id)
 
-    def remove_self(self, **kwargs):
+    async def remove_self(self, **kwargs):
         """
         Leave a group if allowed.
 
@@ -986,14 +986,14 @@ class GroupMembership(CanvasObject):
         :returns: An empty dictionary
         :rtype: dict
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "groups/{}/memberships/self".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()
+        return await response.json()
 
-    def remove_user(self, user, **kwargs):
+    async def remove_user(self, user, **kwargs):
         """
         Remove user from membership.
 
@@ -1010,14 +1010,14 @@ class GroupMembership(CanvasObject):
 
         user_id = obj_or_id(user, "user", (User,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "groups/{}/users/{}".format(self.id, user_id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()
+        return await response.json()
 
-    def update(self, **kwargs):
+    async def update(self, **kwargs):
         """
         Accept a membership request, or add/remove moderator rights.
 
@@ -1027,18 +1027,19 @@ class GroupMembership(CanvasObject):
         :rtype: :class:`canvasaio.group.GroupMembership`
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "groups/{}/memberships/{}".format(self.group_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return GroupMembership(self._requester, response.json())
+        return GroupMembership(self._requester, await response.json())
 
 
 class GroupCategory(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.name, self.id)
 
+    # XXX TODO This API is quite schizophrenic... both sync and async return values..
     def assign_members(self, sync=False, **kwargs):
         """
         Assign unassigned members.
@@ -1061,14 +1062,20 @@ class GroupCategory(CanvasObject):
                 _kwargs=combine_kwargs(**kwargs),
             )
         else:
-            response = self._requester.request(
-                "POST",
-                "group_categories/{}/assign_unassigned_members".format(self.id),
-                _kwargs=combine_kwargs(**kwargs),
-            )
-            return Progress(self._requester, response.json())
+            async def _async():
+                response = await self._requester.request(
+                    "POST",
+                    "group_categories/{}/assign_unassigned_members".format(self.id),
+                    _kwargs=combine_kwargs(**kwargs),
+                )
+                response_json = await response.json()
+                # XXX check; cf paginated_list.py:94 -- something fishy going on here
+                if type(response_json) == list:  #  and len(response_json) == 1:  # XXX WTH, test fails with len check..
+                    response_json = response_json[0]
+                return Progress(self._requester, response_json)
+            return _async()
 
-    def create_group(self, **kwargs):
+    async def create_group(self, **kwargs):
         """
         Create a group.
 
@@ -1077,14 +1084,14 @@ class GroupCategory(CanvasObject):
 
         :rtype: :class:`canvasaio.group.Group`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "group_categories/{}/groups".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Group(self._requester, response.json())
+        return Group(self._requester, await response.json())
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Delete a group category.
 
@@ -1093,12 +1100,12 @@ class GroupCategory(CanvasObject):
 
         :rtype: empty dict
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "group_categories/{}".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()
+        return await response.json()
 
     def get_groups(self, **kwargs):
         """
@@ -1134,7 +1141,7 @@ class GroupCategory(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def update(self, **kwargs):
+    async def update(self, **kwargs):
         """
         Update a group category.
 
@@ -1143,9 +1150,9 @@ class GroupCategory(CanvasObject):
 
         :rtype: :class:`canvasaio.group.GroupCategory`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "group_categories/{}".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return GroupCategory(self._requester, response.json())
+        return GroupCategory(self._requester, await response.json())

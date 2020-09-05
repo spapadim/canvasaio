@@ -1,7 +1,10 @@
 {
 	"get_collaborators": {
 		"method": "GET",
-		"endpoint": "collaborations/1/members",
+		"endpoint": {
+			"url": "collaborations/1/members",
+			"ignore_query": true
+		},
 		"data": {
 			"collaborators": [
 				{

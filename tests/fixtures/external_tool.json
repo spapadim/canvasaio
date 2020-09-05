@@ -93,7 +93,10 @@
 	},
 	"get_sessionless_launch_url_course": {
 		"method": "GET",
-		"endpoint": "courses/1/external_tools/sessionless_launch",
+		"endpoint": {
+			"url": "courses/1/external_tools/sessionless_launch",
+			"ignore_query": true
+		},
 		"data": {
 			"id": "1",
 			"name": "External Tool #1 (Course)",
@@ -103,7 +106,10 @@
 	},
 	"sessionless_launch_no_url": {
 		"method": "GET",
-		"endpoint": "courses/2/external_tools/sessionless_launch",
+		"endpoint": {
+			"url": "courses/2/external_tools/sessionless_launch",
+			"ignore_query": true
+		},
 		"data": {
 			"id": "2",
 			"name": "External Tool #2 (Course)"

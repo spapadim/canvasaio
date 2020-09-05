@@ -5,7 +5,7 @@ class Enrollment(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.type, self.id)
 
-    def deactivate(self, task):
+    async def deactivate(self, task):
         """
         Delete, conclude, or deactivate an enrollment.
 
@@ -28,14 +28,14 @@ class Enrollment(CanvasObject):
                 )
             )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "courses/{}/enrollments/{}".format(self.course_id, self.id),
             task=task,
         )
-        return Enrollment(self._requester, response.json())
+        return Enrollment(self._requester, await response.json())
 
-    def reactivate(self):
+    async def reactivate(self):
         """
         Activate an inactive enrollment.
 
@@ -44,8 +44,8 @@ class Enrollment(CanvasObject):
 
         :rtype: :class:`canvasaio.enrollment.Enrollment`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/enrollments/{}/reactivate".format(self.course_id, self.id),
         )
-        return Enrollment(self._requester, response.json())
+        return Enrollment(self._requester, await response.json())

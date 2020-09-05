@@ -35,7 +35,7 @@ class ExternalTool(CanvasObject):
         else:
             raise ValueError("ExternalTool does not have a course_id or account_id")
 
-    def get_parent(self):
+    async def get_parent(self):
         """
         Return the object that spawned this tool.
 
@@ -44,16 +44,16 @@ class ExternalTool(CanvasObject):
         from canvasaio.account import Account
         from canvasaio.course import Course
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET", "{}s/{}".format(self.parent_type, self.parent_id)
         )
 
         if self.parent_type == "account":
-            return Account(self._requester, response.json())
+            return Account(self._requester, await response.json())
         elif self.parent_type == "course":
-            return Course(self._requester, response.json())
+            return Course(self._requester, await response.json())
 
-    def delete(self):
+    async def delete(self):
         """
         Remove the specified external tool.
 
@@ -64,16 +64,16 @@ class ExternalTool(CanvasObject):
 
         :rtype: :class:`canvasaio.external_tool.ExternalTool`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "{}s/{}/external_tools/{}".format(
                 self.parent_type, self.parent_id, self.id
             ),
         )
 
-        return ExternalTool(self._requester, response.json())
+        return ExternalTool(self._requester, await response.json())
 
-    def edit(self, **kwargs):
+    async def edit(self, **kwargs):
         """
         Update the specified external tool.
 
@@ -84,21 +84,21 @@ class ExternalTool(CanvasObject):
 
         :rtype: :class:`canvasaio.external_tool.ExternalTool`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "{}s/{}/external_tools/{}".format(
                 self.parent_type, self.parent_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        response_json = response.json()
+        response_json = await response.json()
 
         if "name" in response_json:
             super(ExternalTool, self).set_attributes(response_json)
 
         return ExternalTool(self._requester, response_json)
 
-    def get_sessionless_launch_url(self, **kwargs):
+    async def get_sessionless_launch_url(self, **kwargs):
         """
         Return a sessionless launch url for an external tool.
 
@@ -110,7 +110,7 @@ class ExternalTool(CanvasObject):
         :rtype: str
         """
         kwargs["id"] = self.id
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "{}s/{}/external_tools/sessionless_launch".format(
                 self.parent_type, self.parent_id
@@ -118,6 +118,6 @@ class ExternalTool(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
         try:
-            return response.json()["url"]
+            return (await response.json())["url"]
         except KeyError:
             raise CanvasException("Canvas did not respond with a valid URL")

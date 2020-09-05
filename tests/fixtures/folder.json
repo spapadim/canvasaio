@@ -42,7 +42,10 @@
   },
   "list_folder_files": {
     "method": "GET",
-    "endpoint": "folders/1/files",
+    "endpoint": {
+      "url": "folders/1/files",
+      "ignore_query": true
+    },
     "data": [
       {
         "id": 1,
@@ -91,7 +94,10 @@
   },
   "list_folders": {
     "method": "GET",
-    "endpoint": "folders/1/folders",
+    "endpoint": {
+      "url": "folders/1/folders",
+      "ignore_query": true
+    },
     "data": [
       {
         "id": 2,

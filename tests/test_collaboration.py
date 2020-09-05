@@ -1,16 +1,16 @@
 import unittest
 
-import requests_mock
+from aioresponses import aioresponses
 
 from canvasaio import Canvas
 from canvasaio.collaboration import Collaboration, Collaborator
 from canvasaio.paginated_list import PaginatedList
 from tests import settings
-from tests.util import register_uris
+from tests.util import register_uris, aioresponse_mock
 
 
-@requests_mock.Mocker()
-class TestCollaboration(unittest.TestCase):
+@aioresponse_mock
+class TestCollaboration(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
@@ -34,23 +34,29 @@ class TestCollaboration(unittest.TestCase):
             },
         )
 
+    async def asyncTearDown(self):
+        await self.canvas.close()
+
     def test_str(self, m):
         test_str = str(self.collaboration)
         self.assertIsInstance(test_str, str)
 
-    def test_get_collaborators(self, m):
+    async def test_get_collaborators(self, m):
         register_uris({"collaboration": ["get_collaborators"]}, m)
 
         collaborator_list = self.collaboration.get_collaborators()
 
         self.assertIsInstance(collaborator_list, PaginatedList)
+
+        collaborator_list = [collab async for collab in collaborator_list]
+
         self.assertIsInstance(collaborator_list[0], Collaborator)
         self.assertEqual(collaborator_list[0].id, 12345)
         self.assertEqual(collaborator_list[0].name, "Don Draper")
 
 
-@requests_mock.Mocker()
-class TestCollaborator(unittest.TestCase):
+@aioresponse_mock
+class TestCollaborator(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
@@ -58,6 +64,9 @@ class TestCollaborator(unittest.TestCase):
             self.canvas._Canvas__requester,
             {"id": 12345, "type": "user", "name": "Don Draper"},
         )
+
+    async def asyncTearDown(self) -> None:
+        await self.canvas.close()
 
     def test_str(self, m):
         test_str = str(self.collaborator)

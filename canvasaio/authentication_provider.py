@@ -6,7 +6,7 @@ class AuthenticationProvider(CanvasObject):
     def __str__(self):  # pragma: no cover
         return "{} ({})".format(self.auth_type, self.position)
 
-    def update(self, **kwargs):
+    async  def update(self, **kwargs):
         """
         Update an authentication provider using the same options as the create endpoint
 
@@ -15,18 +15,19 @@ class AuthenticationProvider(CanvasObject):
 
         :rtype: :class:`canvasaio.authentication_provider.AuthenticationProvider`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "accounts/{}/authentication_providers/{}".format(self.account_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        if response.json().get("auth_type"):
-            super(AuthenticationProvider, self).set_attributes(response.json())
+        response_json = await response.json()
+        if response_json.get("auth_type"):
+            super(AuthenticationProvider, self).set_attributes(response_json)
 
-        return response.json().get("auth_type")
+        return response_json.get("auth_type")
 
-    def delete(self):
+    async def delete(self):
         """
         Delete the config
 
@@ -35,8 +36,8 @@ class AuthenticationProvider(CanvasObject):
 
         :rtype: :class:`canvasaio.authentication_provider.AuthenticationProvider`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "accounts/{}/authentication_providers/{}".format(self.account_id, self.id),
         )
-        return AuthenticationProvider(self._requester, response.json())
+        return AuthenticationProvider(self._requester, await response.json())

@@ -897,12 +897,12 @@ class TestAccount(unittest.IsolatedAsyncioTestCase):
     async def test_get_content_migrations(self, m):
         register_uris({"account": ["get_content_migration_multiple"]}, m)
 
-        content_migrations = self.account.get_content_migrations()
+        response = self.account.get_content_migrations()
+        content_migrations = [cm async for cm in response]
 
-        self.assertEqual(len(list([cm async for cm in content_migrations])), 2)
+        self.assertEqual(len(content_migrations), 2)
 
-        self.assertIsInstance(await content_migrations[0], ContentMigration)
-        content_migrations = list([cm async for cm in content_migrations])  # XXX move earlier
+        self.assertIsInstance(content_migrations[0], ContentMigration)
         self.assertEqual(content_migrations[0].id, 1)
         self.assertEqual(content_migrations[0].migration_type, "dummy_importer")
         self.assertIsInstance(content_migrations[1], ContentMigration)

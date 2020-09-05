@@ -7,7 +7,7 @@ class Outcome(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.title, self.url)
 
-    def update(self, **kwargs):
+    async def update(self, **kwargs):
         """
         Modify an existing outcome.
 
@@ -17,14 +17,15 @@ class Outcome(CanvasObject):
         :returns: True if updated, False otherwise.
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT", "outcomes/{}".format(self.id), _kwargs=combine_kwargs(**kwargs)
         )
 
-        if "id" in response.json():
-            super(Outcome, self).set_attributes(response.json())
+        response_json = await response.json()
+        if "id" in response_json:
+            super(Outcome, self).set_attributes(response_json)
 
-        return "id" in response.json()
+        return "id" in response_json
 
 
 class OutcomeLink(CanvasObject):
@@ -39,7 +40,7 @@ class OutcomeLink(CanvasObject):
         elif self.context_type == "Account":
             return "accounts/{}".format(self.context_id)
 
-    def get_outcome(self):
+    async def get_outcome(self):
         """
         Return the linked outcome
 
@@ -50,11 +51,11 @@ class OutcomeLink(CanvasObject):
         :rtype: :class:`canvasaio.outcome.Outcome`
         """
         oid = self.outcome["id"]
-        response = self._requester.request("GET", "outcomes/{}".format(oid))
+        response = await self._requester.request("GET", "outcomes/{}".format(oid))
 
-        return Outcome(self._requester, response.json())
+        return Outcome(self._requester, await response.json())
 
-    def get_outcome_group(self):
+    async def get_outcome_group(self):
         """
         Return the linked outcome group
 
@@ -69,11 +70,11 @@ class OutcomeLink(CanvasObject):
         :rtype: :class:`canvasaio.outcome.OutcomeGroup`
         """
         ogid = self.outcome_group["id"]
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET", "{}/outcome_groups/{}".format(self.context_ref(), ogid)
         )
 
-        return OutcomeGroup(self._requester, response.json())
+        return OutcomeGroup(self._requester, await response.json())
 
 
 class OutcomeGroup(CanvasObject):
@@ -88,7 +89,7 @@ class OutcomeGroup(CanvasObject):
         elif self.context_type is None:
             return "global"
 
-    def update(self, **kwargs):
+    async def update(self, **kwargs):
         """
         Update an outcome group.
 
@@ -102,18 +103,19 @@ class OutcomeGroup(CanvasObject):
         :returns: True if updated, False otherwise.
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "{}/outcome_groups/{}".format(self.context_ref(), self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        if "id" in response.json():
-            super(OutcomeGroup, self).set_attributes(response.json())
+        response_json = await response.json()
+        if "id" in response_json:
+            super(OutcomeGroup, self).set_attributes(response_json)
 
-        return "id" in response.json()
+        return "id" in response_json
 
-    def delete(self):
+    async def delete(self):
         """
         Delete an outcome group.
 
@@ -127,14 +129,15 @@ class OutcomeGroup(CanvasObject):
         :returns: True if successful, false if failed.
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE", "{}/outcome_groups/{}".format(self.context_ref(), self.id)
         )
 
-        if "id" in response.json():
-            super(OutcomeGroup, self).set_attributes(response.json())
+        response_json = await response.json()
+        if "id" in response_json:
+            super(OutcomeGroup, self).set_attributes(response_json)
 
-        return "id" in response.json()
+        return "id" in response_json
 
     def get_linked_outcomes(self, **kwargs):
         """
@@ -159,7 +162,7 @@ class OutcomeGroup(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def link_existing(self, outcome):
+    async def link_existing(self, outcome):
         """
         Link to an existing Outcome.
 
@@ -178,16 +181,16 @@ class OutcomeGroup(CanvasObject):
         """
         outcome_id = obj_or_id(outcome, "outcome", (Outcome,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "{}/outcome_groups/{}/outcomes/{}".format(
                 self.context_ref(), self.id, outcome_id
             ),
         )
 
-        return OutcomeLink(self._requester, response.json())
+        return OutcomeLink(self._requester, await response.json())
 
-    def link_new(self, title, **kwargs):
+    async def link_new(self, title, **kwargs):
         """
         Create a new Outcome and link it to this OutcomeGroup
 
@@ -204,16 +207,16 @@ class OutcomeGroup(CanvasObject):
         :returns: OutcomeLink object with current OutcomeGroup and newly linked Outcome.
         :rtype: :class:`canvasaio.outcome.OutcomeLink`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "{}/outcome_groups/{}/outcomes".format(self.context_ref(), self.id),
             title=title,
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return OutcomeLink(self._requester, response.json())
+        return OutcomeLink(self._requester, await response.json())
 
-    def unlink_outcome(self, outcome):
+    async def unlink_outcome(self, outcome):
         """
         Remove an Outcome from and OutcomeLink
 
@@ -232,17 +235,18 @@ class OutcomeGroup(CanvasObject):
         """
         outcome_id = obj_or_id(outcome, "outcome", (Outcome,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "{}/outcome_groups/{}/outcomes/{}".format(
                 self.context_ref(), self.id, outcome_id
             ),
         )
 
-        if "context_id" in response.json():
-            super(OutcomeGroup, self).set_attributes(response.json())
+        response_json = await response.json()
+        if "context_id" in response_json:
+            super(OutcomeGroup, self).set_attributes(response_json)
 
-        return "context_id" in response.json()
+        return "context_id" in response_json
 
     def get_subgroups(self, **kwargs):
         """
@@ -268,7 +272,7 @@ class OutcomeGroup(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def create_subgroup(self, title, **kwargs):
+    async def create_subgroup(self, title, **kwargs):
         """
         Create a subgroup of the current group
 
@@ -285,16 +289,16 @@ class OutcomeGroup(CanvasObject):
         :returns: Itself as an OutcomeGroup object.
         :rtype: :class:`canvasaio.outcome.OutcomeGroup`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "{}/outcome_groups/{}/subgroups".format(self.context_ref(), self.id),
             title=title,
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return OutcomeGroup(self._requester, response.json())
+        return OutcomeGroup(self._requester, await response.json())
 
-    def import_outcome_group(self, outcome_group):
+    async def import_outcome_group(self, outcome_group):
         """
         Import an outcome group as a subgroup into the current outcome group
 
@@ -315,10 +319,10 @@ class OutcomeGroup(CanvasObject):
             outcome_group, "outcome_group", (OutcomeGroup,)
         )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "{}/outcome_groups/{}/import".format(self.context_ref(), self.id),
             source_outcome_group_id=source_outcome_group_id,
         )
 
-        return OutcomeGroup(self._requester, response.json())
+        return OutcomeGroup(self._requester, await response.json())

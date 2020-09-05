@@ -48,7 +48,7 @@ class ContentMigration(CanvasObject):
                 "Content Migration does not have an account_id, course_id, group_id or user_id"
             )
 
-    def get_migration_issue(self, migration_issue, **kwargs):
+    async def get_migration_issue(self, migration_issue, **kwargs):
         """
         List a single issue for this content migration.
 
@@ -79,7 +79,7 @@ class ContentMigration(CanvasObject):
             migration_issue, "migration_issue", (MigrationIssue,)
         )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "{}s/{}/content_migrations/{}/migration_issues/{}".format(
                 self._parent_type, self._parent_id, self.id, migration_issue_id
@@ -87,7 +87,7 @@ class ContentMigration(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update(
             {
                 "context_type": self._parent_type,
@@ -138,7 +138,7 @@ class ContentMigration(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_parent(self, **kwargs):
+    async def get_parent(self, **kwargs):
         """
         Return the object that spawned this content migration.
 
@@ -152,22 +152,22 @@ class ContentMigration(CanvasObject):
         from canvasaio.account import Account
         from canvasaio.user import User
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "{}s/{}".format(self._parent_type, self._parent_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
         if self._parent_type == "group":
-            return Group(self._requester, response.json())
+            return Group(self._requester, await response.json())
         elif self._parent_type == "course":
-            return Course(self._requester, response.json())
+            return Course(self._requester, await response.json())
         elif self._parent_type == "account":
-            return Account(self._requester, response.json())
+            return Account(self._requester, await response.json())
         elif self._parent_type == "user":
-            return User(self._requester, response.json())
+            return User(self._requester, await response.json())
 
-    def get_progress(self, **kwargs):
+    async def get_progress(self, **kwargs):
         """
         Get the progress of the current content migration.
 
@@ -181,12 +181,12 @@ class ContentMigration(CanvasObject):
 
         progress_id = self.progress_url.split("/")[-1]
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET", "progress/{}".format(progress_id), _kwargs=combine_kwargs(**kwargs)
         )
-        return Progress(self._requester, response.json())
+        return Progress(self._requester, await response.json())
 
-    def update(self, **kwargs):
+    async def update(self, **kwargs):
         """
         Update an existing content migration.
 
@@ -205,7 +205,7 @@ class ContentMigration(CanvasObject):
         :returns: True if the migration was updated, False otherwise.
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "{}s/{}/content_migrations/{}".format(
                 self._parent_type, self._parent_id, self.id
@@ -213,8 +213,9 @@ class ContentMigration(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        if "migration_type" in response.json():
-            super(ContentMigration, self).set_attributes(response.json())
+        response_json = await response.json()
+        if "migration_type" in response_json:
+            super(ContentMigration, self).set_attributes(response_json)
             return True
         else:
             return False
@@ -224,7 +225,7 @@ class MigrationIssue(CanvasObject):
     def __str__(self):
         return "{}: {}".format(self.id, self.description)
 
-    def update(self, **kwargs):
+    async def update(self, **kwargs):
         """
         Update an existing migration issue.
 
@@ -244,7 +245,7 @@ class MigrationIssue(CanvasObject):
         :returns: True if the issue was updated, False otherwise.
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "{}s/{}/content_migrations/{}/migration_issues/{}".format(
                 self.context_type, self.context_id, self.content_migration_id, self.id
@@ -252,8 +253,9 @@ class MigrationIssue(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        if "workflow_state" in response.json():
-            super(MigrationIssue, self).set_attributes(response.json())
+        response_json = await response.json()
+        if "workflow_state" in response_json:
+            super(MigrationIssue, self).set_attributes(response_json)
             return True
         else:
             return False

@@ -1,26 +1,28 @@
 import unittest
 from urllib.parse import quote
 
-import requests
-import requests_mock
+from aioresponses import aioresponses, CallbackResult
 
 from canvasaio import Canvas
 from canvasaio.custom_gradebook_columns import ColumnData
 from canvasaio.paginated_list import PaginatedList
 from tests import settings
-from tests.util import register_uris
+from tests.util import register_uris, aioresponse_mock
 
 
-@requests_mock.Mocker()
-class TestCustomGradebookColumn(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestCustomGradebookColumn(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             register_uris({"course": ["get_by_id", "get_custom_columns"]}, m)
 
-            self.course = self.canvas.get_course(1)
-            self.gradebook_column = self.course.get_custom_columns()[1]
+            self.course = await self.canvas.get_course(1)
+            self.gradebook_column = await self.course.get_custom_columns()[1]
+
+    async def asyncTearDown(self) -> None:
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):
@@ -28,19 +30,22 @@ class TestCustomGradebookColumn(unittest.TestCase):
         self.assertIsInstance(string, str)
 
     # delete()
-    def test_delete(self, m):
+    async def test_delete(self, m):
         register_uris({"custom_gradebook_columns": ["delete"]}, m)
 
-        success = self.gradebook_column.delete()
+        success = await self.gradebook_column.delete()
         self.assertTrue(success)
 
     # get_column_entries()
-    def test_get_column_entries(self, m):
+    async def test_get_column_entries(self, m):
         register_uris({"custom_gradebook_columns": ["get_column_entries"]}, m)
 
         column_entries = self.gradebook_column.get_column_entries()
 
         self.assertIsInstance(column_entries, PaginatedList)
+
+        column_entries = [entry async for entry in column_entries]
+
         self.assertIsInstance(column_entries[0], ColumnData)
         self.assertTrue(hasattr(column_entries[0], "gradebook_column_id"))
         self.assertEqual(
@@ -48,64 +53,71 @@ class TestCustomGradebookColumn(unittest.TestCase):
         )
 
     # reorder_custom_columns()
-    def test_reorder_custom_columns(self, m):
-        def custom_matcher(request):
-            match_text = "1,2,3"
-            if request.text == "order={}".format(quote(match_text)):
-                resp = requests.Response()
-                resp._content = b'{"reorder": true, "order": [1, 2, 3]}'
-                resp.status_code = 200
-                return resp
+    async def test_reorder_custom_columns(self, m):
+        # Custom callback to test that params are set correctly
+        async def callback(url, data, **kwargs):
+            self.assertEqual(1, len(data._fields))
+            field_type_options, field_headers, field_value = data._fields[0]
+            self.assertEqual("order", field_type_options["name"])
+            self.assertEqual("1,2,3", field_value)
+            return CallbackResult(status=200, body='{"reorder": true, "order": [1, 2, 3]}')
 
-        m.add_matcher(custom_matcher)
+        m.add(
+            settings.BASE_URL + "/api/v1/courses/1/custom_gradebook_columns/reorder",
+            method="POST",
+            callback=callback,
+        )
 
         order = [1, 2, 3]
-        columns = self.gradebook_column.reorder_custom_columns(order=order)
+        columns = await self.gradebook_column.reorder_custom_columns(order=order)
         self.assertTrue(columns)
 
-    def test_reorder_custom_columns_tuple(self, m):
+    async def test_reorder_custom_columns_tuple(self, m):
         register_uris({"custom_gradebook_columns": ["reorder_custom_columns"]}, m)
 
         order = (1, 2, 3)
-        columns = self.gradebook_column.reorder_custom_columns(order=order)
+        columns = await self.gradebook_column.reorder_custom_columns(order=order)
         self.assertTrue(columns)
 
-    def test_reorder_custom_columns_comma_separated_string(self, m):
+    async def test_reorder_custom_columns_comma_separated_string(self, m):
         register_uris({"custom_gradebook_columns": ["reorder_custom_columns"]}, m)
 
         order = "1,2,3"
-        gradebook = self.gradebook_column.reorder_custom_columns(order=order)
+        gradebook = await self.gradebook_column.reorder_custom_columns(order=order)
         self.assertTrue(gradebook)
 
-    def test_reorder_custom_columns_invalid_input(self, m):
+    async def test_reorder_custom_columns_invalid_input(self, m):
         order = "invalid string"
         with self.assertRaises(ValueError):
-            self.gradebook_column.reorder_custom_columns(order=order)
+            await self.gradebook_column.reorder_custom_columns(order=order)
 
     # update_custom_column()
-    def test_update_custom_column(self, m):
+    async def test_update_custom_column(self, m):
         register_uris({"custom_gradebook_columns": ["update_custom_column"]}, m)
 
         new_title = "Example title"
-        self.gradebook_column.update_custom_column(column={"title": new_title})
+        await self.gradebook_column.update_custom_column(column={"title": new_title})
         self.assertEqual(self.gradebook_column.title, new_title)
 
 
-@requests_mock.Mocker()
-class TestColumnData(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestColumnData(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             requires = {
                 "course": ["get_by_id", "get_custom_columns"],
                 "custom_gradebook_columns": ["get_column_entries"],
             }
             register_uris(requires, m)
 
-            self.course = self.canvas.get_course(1)
-            self.gradebook_column = self.course.get_custom_columns()[1]
-            self.data = self.gradebook_column.get_column_entries()[1]
+            self.course = await self.canvas.get_course(1)
+            self.gradebook_column = await self.course.get_custom_columns()[1]
+            self.data = await self.gradebook_column.get_column_entries()[1]
+
+    async def asyncTearDown(self) -> None:
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):
@@ -113,9 +125,9 @@ class TestColumnData(unittest.TestCase):
         self.assertIsInstance(string, str)
 
     # update_column_data()
-    def test_update_column_data(self, m):
+    async def test_update_column_data(self, m):
         register_uris({"custom_gradebook_columns": ["update_column_data"]}, m)
 
         new_content = "Updated content"
-        self.data.update_column_data(column_data={"content": new_content})
+        await self.data.update_column_data(column_data={"content": new_content})
         self.assertEqual(self.data.content, new_content)

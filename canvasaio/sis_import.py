@@ -7,7 +7,7 @@ class SisImport(CanvasObject):
     def __str__(self):  # pragma: no cover
         return "{} ({})".format(self.workflow_state, self.id)
 
-    def abort(self, **kwargs):
+    async def abort(self, **kwargs):
         """
         Abort this SIS import.
 
@@ -16,14 +16,14 @@ class SisImport(CanvasObject):
 
         :rtype: :class:`canvasaio.sis_import.SisImport`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "accounts/{}/sis_imports/{}/abort".format(self.account_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return SisImport(self._requester, response.json())
+        return SisImport(self._requester, await response.json())
 
-    def restore_states(self, **kwargs):
+    async def restore_states(self, **kwargs):
         """
         Restore workflow_states of SIS imported items.
 
@@ -32,11 +32,11 @@ class SisImport(CanvasObject):
 
         :rtype: :class:`canvasaio.progress.Progress`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "accounts/{}/sis_imports/{}/restore_states".format(
                 self.account_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Progress(self._requester, response.json())
+        return Progress(self._requester, await response.json())

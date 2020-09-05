@@ -6,7 +6,7 @@ class CalendarEvent(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.title, self.id)
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Delete this calendar event.
 
@@ -15,14 +15,14 @@ class CalendarEvent(CanvasObject):
 
         :rtype: :class:`canvasaio.calendar_event.CalendarEvent`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "calendar_events/{}".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return CalendarEvent(self._requester, response.json())
+        return CalendarEvent(self._requester, await response.json())
 
-    def edit(self, **kwargs):
+    async def edit(self, **kwargs):
         """
         Modify this calendar event.
 
@@ -31,13 +31,14 @@ class CalendarEvent(CanvasObject):
 
         :rtype: :class:`canvasaio.calendar_event.CalendarEvent`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "calendar_events/{}".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        if "title" in response.json():
-            super(CalendarEvent, self).set_attributes(response.json())
+        response_json = await response.json()
+        if "title" in response_json:
+            super(CalendarEvent, self).set_attributes(response_json)
 
-        return CalendarEvent(self._requester, response.json())
+        return CalendarEvent(self._requester, response_json)

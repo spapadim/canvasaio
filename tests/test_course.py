@@ -809,7 +809,7 @@ class TestCourse(unittest.IsolatedAsyncioTestCase):
         m.add(
             settings.BASE_URL + "/api/v1/courses/1/discussion_topics/reorder", 
             method="POST", 
-            callback=callback
+            callback=callback,
         )
 
         order = [1, 2, 3]

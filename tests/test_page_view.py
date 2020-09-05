@@ -1,23 +1,26 @@
 import unittest
 
-import requests_mock
+from aioresponses import aioresponses
 
 from canvasaio import Canvas
 from tests import settings
-from tests.util import register_uris
+from tests.util import register_uris, aioresponse_mock
 
 
-@requests_mock.Mocker()
-class TestPageView(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestPageView(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             register_uris({"user": ["get_by_id", "page_views", "page_views_p2"]}, m)
 
-            self.user = self.canvas.get_user(1)
+            self.user = await self.canvas.get_user(1)
             pageviews = self.user.get_page_views()
-            self.pageview = pageviews[0]
+            self.pageview = await pageviews[0]
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):
