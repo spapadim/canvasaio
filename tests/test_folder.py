@@ -20,6 +20,9 @@ class TestFolder(unittest.IsolatedAsyncioTestCase):
 
             self.folder = await self.canvas.get_folder(1)
 
+    async def asyncTearDown(self):
+        await self.canvas.close()
+
     # __str__()
     def test__str__(self, m):
         string = str(self.folder)

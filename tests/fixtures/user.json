@@ -307,6 +307,7 @@
 	},
 	"get_user_assignments2": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "users/1/courses/1/list_assignments?page=2&per_page=2",
 		"data": [
 			{

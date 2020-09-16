@@ -8,7 +8,7 @@ class PollSession(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.poll_id, self.id)
 
-    def update(self, poll_session, **kwargs):
+    async def update(self, poll_session, **kwargs):
         """
         Update an existing poll session for a poll based on poll id.
 
@@ -31,14 +31,14 @@ class PollSession(CanvasObject):
         else:
             raise RequiredFieldMissing("Dictionary with key 'course_id' is required.")
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "polls/{}/poll_sessions/{}".format(self.poll_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return PollSession(self._requester, response.json()["poll_sessions"][0])
+        return PollSession(self._requester, (await response.json())["poll_sessions"][0])
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Delete a single poll session, based on the session id.
 
@@ -49,14 +49,14 @@ class PollSession(CanvasObject):
 
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "polls/{}/poll_sessions/{}".format(self.poll_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.status_code == 204
+        return response.status == 204
 
-    def open(self, **kwargs):
+    async def open(self, **kwargs):
         """
         Open a poll session to answers based on the poll id.
 
@@ -65,14 +65,14 @@ class PollSession(CanvasObject):
 
         :returns: :class:`canvasaio.poll_session.PollSession`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "polls/{}/poll_sessions/{}/open".format(self.poll_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return PollSession(self._requester, response.json()["poll_sessions"][0])
+        return PollSession(self._requester, (await response.json())["poll_sessions"][0])
 
-    def close(self, **kwargs):
+    async def close(self, **kwargs):
         """
         Close a poll session to answers based on the poll id.
 
@@ -81,14 +81,14 @@ class PollSession(CanvasObject):
 
         :returns: :class:`canvasaio.poll_session.PollSession`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "polls/{}/poll_sessions/{}/close".format(self.poll_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return PollSession(self._requester, response.json()["poll_sessions"][0])
+        return PollSession(self._requester, (await response.json())["poll_sessions"][0])
 
-    def get_submission(self, poll_submission, **kwargs):
+    async def get_submission(self, poll_submission, **kwargs):
         """
         Returns the poll submission with the given id.
 
@@ -104,16 +104,16 @@ class PollSession(CanvasObject):
             poll_submission, "poll_submission", (PollSubmission,)
         )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "polls/{}/poll_sessions/{}/poll_submissions/{}".format(
                 self.poll_id, self.id, poll_submission_id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return PollSubmission(self._requester, response.json()["poll_submissions"][0])
+        return PollSubmission(self._requester, (await response.json())["poll_submissions"][0])
 
-    def create_submission(self, poll_submissions, **kwargs):
+    async def create_submission(self, poll_submissions, **kwargs):
         """
         Create a new poll submission for this poll session.
 
@@ -137,9 +137,9 @@ class PollSession(CanvasObject):
                 "Dictionary with key 'poll_choice_id is required."
             )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "polls/{}/poll_sessions/{}/poll_submissions".format(self.poll_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return PollSubmission(self._requester, response.json()["poll_submissions"][0])
+        return PollSubmission(self._requester, (await response.json())["poll_submissions"][0])

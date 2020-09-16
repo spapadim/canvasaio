@@ -57,7 +57,10 @@
 	},
 	"list_topic_entries": {
 		"method": "GET",
-		"endpoint": "courses/1/discussion_topics/1/entries",
+		"endpoint": {
+			"url": "courses/1/discussion_topics/1/entries",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -87,7 +90,10 @@
 	},
 	"list_entry_replies": {
 		"method": "GET",
-		"endpoint": "courses/1/discussion_topics/1/entries/1/replies",
+		"endpoint": {
+			"url": "courses/1/discussion_topics/1/entries/1/replies",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 5,
@@ -104,7 +110,11 @@
 	},
 	"list_entries": {
 		"method": "GET",
-		"endpoint": "courses/1/discussion_topics/1/entry_list",
+		"repeat": true,
+		"endpoint": {
+			"url": "courses/1/discussion_topics/1/entry_list",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -129,7 +139,10 @@
 	},
 	"list_entries_single": {
 		"method": "GET",
-		"endpoint": "courses/1/discussion_topics/1/entry_list",
+		"endpoint": {
+			"url": "courses/1/discussion_topics/1/entry_list",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -142,7 +155,10 @@
 	},
 	"list_entries_single_group": {
 		"method": "GET",
-		"endpoint": "groups/1/discussion_topics/1/entry_list",
+		"endpoint": {
+			"url": "groups/1/discussion_topics/1/entry_list",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,

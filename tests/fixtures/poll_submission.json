@@ -16,6 +16,7 @@
 	},
 	"get_submission": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "polls/1/poll_sessions/1/poll_submissions/1",
 		"data": {
 			"poll_submissions": [

@@ -11,7 +11,7 @@ class Quiz(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.title, self.id)
 
-    def broadcast_message(self, conversations, **kwargs):
+    async def broadcast_message(self, conversations, **kwargs):
         """
         Send a message to unsubmitted or submitted users for the quiz.
 
@@ -39,7 +39,7 @@ class Quiz(CanvasObject):
                 )
             )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/quizzes/{}/submission_users/message".format(
                 self.course_id, self.id
@@ -47,9 +47,9 @@ class Quiz(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.status_code == 201
+        return response.status == 201
 
-    def create_question(self, **kwargs):
+    async def create_question(self, **kwargs):
         """
         Create a new quiz question for this quiz.
 
@@ -59,18 +59,18 @@ class Quiz(CanvasObject):
         :rtype: :class:`canvasaio.quiz.QuizQuestion`
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/quizzes/{}/questions".format(self.course_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"course_id": self.course_id})
 
         return QuizQuestion(self._requester, response_json)
 
-    def create_question_group(self, quiz_groups, **kwargs):
+    async def create_question_group(self, quiz_groups, **kwargs):
         """
         Create a new question group for the given quiz id
 
@@ -105,18 +105,18 @@ class Quiz(CanvasObject):
 
         kwargs["quiz_groups"] = quiz_groups
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/quizzes/{}/groups".format(self.course_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json["quiz_groups"][0].update({"course_id": self.id})
 
         return QuizGroup(self._requester, response_json.get("quiz_groups")[0])
 
-    def create_report(self, report_type, **kwargs):
+    async def create_report(self, report_type, **kwargs):
         """
         Create and return a new report for this quiz. If a previously generated report
         matches the arguments and is still current (i.e. there have been no new submissions),
@@ -138,18 +138,18 @@ class Quiz(CanvasObject):
 
         kwargs["quiz_report"] = {"report_type": report_type}
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/quizzes/{}/reports".format(self.course_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"course_id": self.course_id})
 
         return QuizReport(self._requester, response_json)
 
-    def create_submission(self, **kwargs):
+    async def create_submission(self, **kwargs):
         """
         Start taking a Quiz by creating a QuizSubmission can be used to answer
         questions and submit answers.
@@ -159,18 +159,18 @@ class Quiz(CanvasObject):
 
         :rtype: :class:`canvasaio.quiz.QuizSubmission`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/quizzes/{}/submissions".format(self.course_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()["quiz_submissions"][0]
+        response_json = (await response.json())["quiz_submissions"][0]
         response_json.update({"course_id": self.course_id})
 
         return QuizSubmission(self._requester, response_json)
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Delete this quiz.
 
@@ -179,17 +179,17 @@ class Quiz(CanvasObject):
 
         :rtype: :class:`canvasaio.quiz.Quiz`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "courses/{}/quizzes/{}".format(self.course_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        quiz_json = response.json()
+        quiz_json = await response.json()
         quiz_json.update({"course_id": self.course_id})
 
         return Quiz(self._requester, quiz_json)
 
-    def edit(self, **kwargs):
+    async def edit(self, **kwargs):
         """
         Modify this quiz.
 
@@ -199,12 +199,12 @@ class Quiz(CanvasObject):
         :returns: The updated quiz.
         :rtype: :class:`canvasaio.quiz.Quiz`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/quizzes/{}".format(self.course_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        quiz_json = response.json()
+        quiz_json = await response.json()
         quiz_json.update({"course_id": self.course_id})
 
         return Quiz(self._requester, quiz_json)
@@ -227,7 +227,7 @@ class Quiz(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_question(self, question, **kwargs):
+    async def get_question(self, question, **kwargs):
         """
         Get as single quiz question by ID.
 
@@ -241,14 +241,14 @@ class Quiz(CanvasObject):
         """
         question_id = obj_or_id(question, "question", (QuizQuestion,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/quizzes/{}/questions/{}".format(
                 self.course_id, self.id, question_id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"course_id": self.course_id})
 
         return QuizQuestion(self._requester, response_json)
@@ -272,7 +272,7 @@ class Quiz(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_quiz_group(self, id, **kwargs):
+    async def get_quiz_group(self, id, **kwargs):
         """
         Get details of the quiz group with the given id
 
@@ -285,18 +285,18 @@ class Quiz(CanvasObject):
         :returns: `QuizGroup` object
         :rtype: :class:`canvasaio.quiz_group.QuizGroup`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/quizzes/{}/groups/{}".format(self.course_id, self.id, id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"course_id": self.course_id})
 
         return QuizGroup(self._requester, response_json)
 
-    def get_quiz_report(self, id, **kwargs):
+    async def get_quiz_report(self, id, **kwargs):
         """
         Returns the data for a single quiz report.
 
@@ -311,18 +311,18 @@ class Quiz(CanvasObject):
         """
         id = obj_or_id(id, "id", (QuizReport,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/quizzes/{}/reports/{}".format(self.course_id, self.id, id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"course_id": self.course_id})
 
         return QuizReport(self._requester, response_json)
 
-    def get_quiz_submission(self, quiz_submission, **kwargs):
+    async def get_quiz_submission(self, quiz_submission, **kwargs):
         """
         Get a single quiz submission.
 
@@ -338,7 +338,7 @@ class Quiz(CanvasObject):
             quiz_submission, "quiz_submission", (QuizSubmission,)
         )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/quizzes/{}/submissions/{}".format(
                 self.course_id, self.id, quiz_submission_id
@@ -346,26 +346,27 @@ class Quiz(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()["quiz_submissions"][0]
-        response_json.update({"course_id": self.course_id})
-        if len(response.json().get("quizzes", [])) > 0:
-            response_json.update(
-                {"quiz": Quiz(self._requester, response.json()["quizzes"][0])}
+        response_json = await response.json()
+        response_quiz_submissions = response_json["quiz_submissions"][0]
+        response_quiz_submissions.update({"course_id": self.course_id})
+        if len(response_json.get("quizzes", [])) > 0:
+            response_quiz_submissions.update(
+                {"quiz": Quiz(self._requester, response_json["quizzes"][0])}
             )
-        if len(response.json().get("submissions", [])) > 0:
-            response_json.update(
+        if len(response_json.get("submissions", [])) > 0:
+            response_quiz_submissions.update(
                 {
                     "submission": Submission(
-                        self._requester, response.json()["submissions"][0]
+                        self._requester, response_json["submissions"][0]
                     )
                 }
             )
-        if len(response.json().get("users", [])) > 0:
-            response_json.update(
-                {"user": User(self._requester, response.json()["users"][0])}
+        if len(response_json.get("users", [])) > 0:
+            response_quiz_submissions.update(
+                {"user": User(self._requester, response_json["users"][0])}
             )
 
-        return QuizSubmission(self._requester, response_json)
+        return QuizSubmission(self._requester, response_quiz_submissions)
 
     def get_statistics(self, **kwargs):
         """
@@ -407,7 +408,7 @@ class Quiz(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def set_extensions(self, quiz_extensions, **kwargs):
+    async def set_extensions(self, quiz_extensions, **kwargs):
         """
         Set extensions for student quiz submissions.
 
@@ -451,12 +452,12 @@ class Quiz(CanvasObject):
 
         kwargs["quiz_extensions"] = quiz_extensions
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/quizzes/{}/extensions".format(self.course_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        extension_list = response.json()["quiz_extensions"]
+        extension_list = (await response.json())["quiz_extensions"]
         return [
             QuizExtension(self._requester, extension) for extension in extension_list
         ]
@@ -471,7 +472,7 @@ class QuizSubmission(CanvasObject):
     def __str__(self):
         return "Quiz {} - User {} ({})".format(self.quiz_id, self.user_id, self.id)
 
-    def answer_submission_questions(self, validation_token=None, **kwargs):
+    async def answer_submission_questions(self, validation_token=None, **kwargs):
         """
         Provide or update an answer to one or more quiz questions.
 
@@ -497,14 +498,14 @@ class QuizSubmission(CanvasObject):
         # so we can just use that.
         kwargs["attempt"] = self.attempt
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "quiz_submissions/{}/questions".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
         questions = list()
-        for question in response.json().get("quiz_submission_questions", []):
+        for question in (await response.json()).get("quiz_submission_questions", []):
             question.update(
                 {
                     "quiz_submission_id": self.id,
@@ -516,7 +517,7 @@ class QuizSubmission(CanvasObject):
 
         return questions
 
-    def complete(self, validation_token=None, **kwargs):
+    async def complete(self, validation_token=None, **kwargs):
         """
         Complete the quiz submission by marking it as complete and grading it. When the quiz
         submission has been marked as complete, no further modifications will be allowed.
@@ -543,7 +544,7 @@ class QuizSubmission(CanvasObject):
         # so we can just use that.
         kwargs["attempt"] = self.attempt
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/quizzes/{}/submissions/{}/complete".format(
                 self.course_id, self.quiz_id, self.id
@@ -551,10 +552,10 @@ class QuizSubmission(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()["quiz_submissions"][0]
+        response_json = (await response.json())["quiz_submissions"][0]
         return QuizSubmission(self._requester, response_json)
 
-    def get_submission_events(self, **kwargs):
+    async def get_submission_events(self, **kwargs):
         """
         Retrieve the set of events captured during a specific submission attempt.
 
@@ -564,18 +565,19 @@ class QuizSubmission(CanvasObject):
         :returns: list of QuizSubmissionEvents.
         :rtype: list
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/quizzes/{}/submissions/{}/events".format(
                 self.course_id, self.quiz_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        events = response.json()["quiz_submission_events"]
+        events = (await response.json())["quiz_submission_events"]
 
         return [QuizSubmissionEvent(self._requester, event) for event in events]
 
-    def get_submission_questions(self, **kwargs):
+
+    async def get_submission_questions(self, **kwargs):
         """
         Get a list of all the question records for this quiz submission.
 
@@ -585,20 +587,20 @@ class QuizSubmission(CanvasObject):
         :returns: A list of quiz submission questions.
         :rtype: list of :class:`canvasaio.quiz.QuizSubmissionQuestion`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "quiz_submissions/{}/questions".format(self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
         questions = list()
-        for question in response.json().get("quiz_submission_questions", []):
+        for question in (await response.json()).get("quiz_submission_questions", []):
             question.update({"quiz_submission_id": self.id, "attempt": self.attempt})
             questions.append(QuizSubmissionQuestion(self._requester, question))
 
         return questions
 
-    def get_times(self, **kwargs):
+    async def get_times(self, **kwargs):
         """
         Get the current timing data for the quiz attempt, both the end_at timestamp and the
         time_left parameter.
@@ -608,7 +610,7 @@ class QuizSubmission(CanvasObject):
 
         :rtype: dict
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/quizzes/{}/submissions/{}/time".format(
                 self.course_id, self.quiz_id, self.id
@@ -616,9 +618,9 @@ class QuizSubmission(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json()
+        return await response.json()
 
-    def submit_events(self, quiz_submission_events, **kwargs):
+    async def submit_events(self, quiz_submission_events, **kwargs):
         """
         Store a set of events which were captured during a quiz taking session.
 
@@ -634,22 +636,28 @@ class QuizSubmission(CanvasObject):
         if isinstance(quiz_submission_events, list) and isinstance(
             quiz_submission_events[0], QuizSubmissionEvent
         ):
-            kwargs["quiz_submission_events"] = quiz_submission_events
+            # XXX If repr() isn't performed here, then aioreponse_mock deepcopy() fails,
+            #   leading to aiohttp Session's __del__() being invoked before it's close(),
+            #   with all hell breaking loose eventually.
+            #   Even though not sure whether this is just a unit test issue (most likely, but
+            #   could also be a broader issue), just playing it safe (at the expense of 
+            #   some memory usage)...
+            kwargs["quiz_submission_events"] = [repr(event) for event in quiz_submission_events]
         else:
             raise RequiredFieldMissing(
                 "Required parameter quiz_submission_events missing."
             )
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/quizzes/{}/submissions/{}/events".format(
                 self.course_id, self.quiz_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.status_code == 204
+        return response.status == 204
 
-    def update_score_and_comments(self, **kwargs):
+    async def update_score_and_comments(self, **kwargs):
         """
         Update the amount of points a student has scored for questions they've answered, provide
         comments for the student about their answer(s), or simply fudge the total score by a
@@ -661,14 +669,14 @@ class QuizSubmission(CanvasObject):
         :returns: The updated quiz.
         :rtype: :class:`canvasaio.quiz.QuizSubmission`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/quizzes/{}/submissions/{}".format(
                 self.course_id, self.quiz_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        response_json = response.json()["quiz_submissions"][0]
+        response_json = (await response.json())["quiz_submissions"][0]
         response_json.update({"course_id": self.course_id})
 
         return QuizSubmission(self._requester, response_json)
@@ -683,7 +691,7 @@ class QuizQuestion(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.question_name, self.id)
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Delete an existing quiz question.
 
@@ -693,7 +701,7 @@ class QuizQuestion(CanvasObject):
         :returns: True if question was successfully deleted; False otherwise.
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "courses/{}/quizzes/{}/questions/{}".format(
                 self.course_id, self.quiz_id, self.id
@@ -701,9 +709,9 @@ class QuizQuestion(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.status_code == 204
+        return response.status == 204
 
-    def edit(self, **kwargs):
+    async def edit(self, **kwargs):
         """
         Update an existing quiz question.
 
@@ -712,14 +720,14 @@ class QuizQuestion(CanvasObject):
 
         :rtype: :class:`canvasaio.quiz.QuizQuestion`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/quizzes/{}/questions/{}".format(
                 self.course_id, self.quiz_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"course_id": self.course_id})
 
         super(QuizQuestion, self).set_attributes(response_json)
@@ -730,7 +738,7 @@ class QuizReport(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.report_type, self.id)
 
-    def abort_or_delete(self, **kwargs):
+    async def abort_or_delete(self, **kwargs):
         """
         This API allows you to cancel a previous request you issued for a report to be generated.
         Or in the case of an already generated report, you'd like to remove it, perhaps to generate
@@ -742,7 +750,7 @@ class QuizReport(CanvasObject):
         :returns: True if attempt was successful; False otherwise
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "courses/{}/quizzes/{}/reports/{}".format(
                 self.course_id, self.quiz_id, self.id
@@ -750,19 +758,23 @@ class QuizReport(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.status_code == 204
+        return response.status == 204
 
 
 class QuizSubmissionEvent(CanvasObject):
     def __str__(self):
         return "{}".format(self.event_type)
 
+    # XXX See comment elsewhere about aioreponse_mock deepcopy() failure;
+    #   although it would be possible to define __deepcopy__() method here
+    #   to just "return self", that's probably a bad idea..!
+
 
 class QuizSubmissionQuestion(CanvasObject):
     def __str__(self):
         return "QuizSubmissionQuestion #{}".format(self.id)
 
-    def flag(self, validation_token=None, **kwargs):
+    async def flag(self, validation_token=None, **kwargs):
         """
         Set a flag on a quiz question to indicate that it should be returned to later.
 
@@ -788,7 +800,7 @@ class QuizSubmissionQuestion(CanvasObject):
         # so we can just use that.
         kwargs["attempt"] = self.attempt
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "quiz_submissions/{}/questions/{}/flag".format(
                 self.quiz_submission_id, self.id
@@ -796,7 +808,7 @@ class QuizSubmissionQuestion(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        question = response.json()["quiz_submission_questions"][0]
+        question = (await response.json())["quiz_submission_questions"][0]
         question.update(
             {
                 "validation_token": kwargs["validation_token"],
@@ -807,7 +819,7 @@ class QuizSubmissionQuestion(CanvasObject):
 
         return True
 
-    def unflag(self, validation_token=None, **kwargs):
+    async def unflag(self, validation_token=None, **kwargs):
         """
         Remove a previously set flag on a quiz question.
 
@@ -833,7 +845,7 @@ class QuizSubmissionQuestion(CanvasObject):
         # so we can just use that.
         kwargs["attempt"] = self.attempt
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "quiz_submissions/{}/questions/{}/unflag".format(
                 self.quiz_submission_id, self.id
@@ -841,7 +853,7 @@ class QuizSubmissionQuestion(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        question = response.json()["quiz_submission_questions"][0]
+        question = (await response.json())["quiz_submission_questions"][0]
         question.update(
             {
                 "validation_token": kwargs["validation_token"],

@@ -7,7 +7,7 @@ class QuizGroup(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.name, self.id)
 
-    def delete(self, id, **kwargs):
+    async def delete(self, id, **kwargs):
         """
         Get details of the quiz group with the given id.
 
@@ -20,14 +20,14 @@ class QuizGroup(CanvasObject):
         :returns: True if the result was successful (Status code of 204)
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "courses/{}/quizzes/{}/groups/{}".format(self.course_id, self.quiz_id, id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.status_code == 204
+        return response.status == 204
 
-    def reorder_question_group(self, id, order, **kwargs):
+    async def reorder_question_group(self, id, order, **kwargs):
         """
         Update the order of questions within a given group
 
@@ -58,7 +58,7 @@ class QuizGroup(CanvasObject):
 
         kwargs["order"] = order
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/quizzes/{}/groups/{}/reorder".format(
                 self.course_id, self.quiz_id, id
@@ -66,9 +66,9 @@ class QuizGroup(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.status_code == 204
+        return response.status == 204
 
-    def update(self, id, quiz_groups, **kwargs):
+    async def update(self, id, quiz_groups, **kwargs):
         """
         Update a question group given by id.
 
@@ -98,14 +98,15 @@ class QuizGroup(CanvasObject):
 
         kwargs["quiz_groups"] = quiz_groups
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/quizzes/{}/groups/{}".format(self.course_id, self.quiz_id, id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        successful = "name" in response.json().get("quiz_groups")[0]
+        response_json = await response.json()
+        successful = "name" in response_json.get("quiz_groups")[0]
         if successful:
-            super(QuizGroup, self).set_attributes(response.json().get("quiz_groups")[0])
+            super(QuizGroup, self).set_attributes(response_json.get("quiz_groups")[0])
 
         return successful

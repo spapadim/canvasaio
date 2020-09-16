@@ -11,7 +11,7 @@ class RubricAssociation(CanvasObject):
     def __str__(self):
         return "{}, {}".format(self.id, self.association_type)
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Delete a RubricAssociation.
 
@@ -22,15 +22,15 @@ class RubricAssociation(CanvasObject):
         """
         from canvasaio.rubric import RubricAssociation
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "courses/{}/rubric_associations/{}".format(self.course_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return RubricAssociation(self._requester, response.json())
+        return RubricAssociation(self._requester, await response.json())
 
-    def update(self, **kwargs):
+    async def update(self, **kwargs):
         """
         Update a RubricAssociation.
 
@@ -42,13 +42,13 @@ class RubricAssociation(CanvasObject):
         """
         from canvasaio.rubric import RubricAssociation
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/rubric_associations/{}".format(self.course_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"course_id": self.course_id})
         if "association_type" in response_json:
             super(RubricAssociation, self).set_attributes(response_json)

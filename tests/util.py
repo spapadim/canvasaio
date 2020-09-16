@@ -3,8 +3,10 @@ import os
 import re
 import inspect
 import unittest
+import inspect
+import itertools
 
-from typing import Optional
+from typing import Optional, Sequence, List, Dict, Set, Container, Iterable, Callable, Union, TypeVar
 
 from aioresponses import aioresponses
 from aiohttp import hdrs
@@ -129,3 +131,146 @@ def aioresponse_mock(class_or_func=None, *, method_prefix: str = "test_"):
     else:
         # Decorating without arguments
         return decorator(class_or_func)
+
+
+# Miscellaneous debugging aids
+
+_Elt = TypeVar('_Elt')
+_IdxSpec = Iterable[Union[int, slice]]
+
+def _idx_spec_to_set(spec: _IdxSpec, len: int) -> Set[int]:
+    ret = set()
+    for s in spec:
+        if type(s) == int:
+            ret.add(s)
+        elif type(s) == slice:
+            ret.update(range(*s.indices(len)))
+        else:
+            raise ValueError("Invalid element in index filter spec")
+    return ret
+
+def _filter_seq(
+    s: Iterable[_Elt], 
+    keep: Optional[_IdxSpec] = None, 
+    skip: Optional[_IdxSpec] = None,
+) -> List[_Elt]:
+    """
+    Filter a sequence based on specification of which indices to keep and which to skip (i.e., discard).
+
+    :param s: Sequence to be filtered
+    :param keep: Iterable of integers or slice objects that specify indices to keep.
+        If ommitted, then all indices are implicitly kept
+    :param skip: Iterable of integers or slice objects that further specify which indices to skip.
+        This specification takes precedence over keep (i.e., if an index appears in both keep and skip, it will be skipped)
+
+    :return: A new list containing the filtered elements of s.
+    """
+    if keep is None and skip is None:
+        return list(s)
+
+    if keep is not None:
+        idx_set = _idx_spec_to_set(keep, len(s))
+    else:
+        idx_set = set(range(len(s)))
+    if skip is not None:
+        idx_set = set(range(len(s))) - _idx_spec_to_set(skip, len(s))
+    ret = []
+    for i, v in enumerate(s):
+        if i in idx_set:
+            ret.append(v)
+    return ret
+
+_Key = TypeVar('_Key')
+_Val = TypeVar('_Val')
+def _filter_dict(
+    d: Dict[_Key, _Val],
+    keep: Optional[Container[_Key]] = None,
+    skip: Optional[Container[_Key]] = None,
+) -> Dict[_Key, _Val]:
+    """
+    Filter a dictionary based on specification of which keys to keep and which to skip (i.e., discard).
+
+    :param d: The dictionary to be filtered
+    :param keep: A container of keys to keep. If ommitted, all are implicitly kept.
+    :param skip: A container of keys to skip. Takes precedence over keep (i.e., keys that appear in both will be skipped).
+
+    :return: A new dictionary containing the filtered key-value pairs from d.
+    """
+    ret = {}
+    for k, v in d.items():
+        if (keep is None or k in keep) and (skip is None or k not in skip):
+            ret[k] = v
+    return ret
+
+def _format_args(args, kwargs):
+  #return ', '.join(itertools.chain((f'{a!r}' for a in args), (f'{name}={val!r}' for name, val in kwargs.items())))
+  return ', '.join(itertools.chain((f'{a}' for a in args), (f'{name}={val}' for name, val in kwargs.items())))
+
+def _args_from_frame(frame):
+  arginfo = inspect.getargvalues(frame)
+  args = arginfo.locals.get(arginfo.varargs, ())
+  kwargs = {argname: arginfo.locals[argname] for argname in arginfo.args}
+  kwargs.update(arginfo.locals.get(arginfo.keywords, {}))
+  return args, kwargs
+
+def _format_stack(
+    stack: List[inspect.FrameInfo], 
+    line_prefix: str = "", 
+    depth: Optional[int] = None, 
+    include_args: bool = False,
+) -> str:
+    if depth is not None:
+        stack = stack[:depth]
+    ret = ""
+    for i, frame in enumerate(stack):
+        argstr = _format_args(*_args_from_frame(frame.frame)) if include_args else ""
+        ret += f"{line_prefix}{i:2d}: {frame.function}({argstr})  [{frame.filename}:{frame.lineno}]\n"
+    return ret
+
+def log_function_decorator(
+    function: Callable, 
+    log_fn: Callable = print,
+    *,
+    log_stack: bool = False, log_stack_args: dict = {},
+    keep_args: Optional[_IdxSpec] = None, skip_args: Optional[_IdxSpec] = None,
+    keep_kwargs: Optional[Container[str]] = None, skip_kwargs: Optional[Container[str]] = None,
+) -> Callable:
+    log_stack_args = dict(line_prefix='    ', **log_stack_args)
+    def _logged_function(*args, **kwargs):
+        log_args = _filter_seq(args, keep_args, skip_args)
+        log_kwargs = _filter_dict(kwargs, keep_kwargs, skip_kwargs)
+        log_fn(
+            f"CALL {function.__qualname__}" + 
+            f"({_format_args(log_args, log_kwargs)})")
+        if log_stack:
+            stack = inspect.stack()[1:]
+            log_fn(f"CALL STACK\n{_format_stack(stack, **log_stack_args)[:-1]}")
+        return function(*args, **kwargs)
+    return _logged_function
+
+def log_class_method(
+    cls: type, method_name: str,
+    log_fn: Callable = print,
+    *,
+    log_stack: bool = False, log_stack_args: dict = {},
+    keep_args: Optional[_IdxSpec] = None, skip_args: Optional[_IdxSpec] = None,
+    keep_kwargs: Optional[Container[str]] = None, skip_kwargs: Optional[Container[str]] = None,
+) -> None:
+    method = getattr(cls, method_name)
+    skip_args = (0,) if skip_args is None else itertools.chain(skip_args, (0,))
+    logged_method = log_function_decorator(
+        method, log_fn=log_fn,
+        log_stack=log_stack, log_stack_args=log_stack_args,
+        keep_args=keep_args, skip_args=skip_args,
+        keep_kwargs=keep_kwargs, skip_kwargs=skip_kwargs,
+    )
+    setattr(cls, method_name, logged_method)
+
+def log_class(
+    cls: type, log_fn: Callable = print, 
+    *, 
+    log_stack: bool = False, log_stack_args: dict = {},
+) -> None:
+    for attrname in dir(cls):
+        if inspect.isfunction(getattr(cls, attrname)):
+            log_class_method(cls, attrname, log_fn=log_fn, log_stack=log_stack, log_stack_args=log_stack_args)

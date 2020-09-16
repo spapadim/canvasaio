@@ -1,7 +1,10 @@
 {
 	"list_preferences": {
 		"method": "GET",
-		"endpoint": "users/1/communication_channels/11/notification_preferences",
+		"endpoint": {
+			"url": "users/1/communication_channels/11/notification_preferences",
+			"ignore_query": true
+		},
 		"data": {
 			"notification_preferences": [
 				{
@@ -83,6 +86,7 @@
 	},
 	"update_multiple_preferences": {
 		"method": "PUT",
+		"repeat": true,
 		"endpoint": "users/self/communication_channels/11/notification_preferences",
 		"data": {
 			"notification_preferences": [

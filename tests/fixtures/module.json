@@ -35,7 +35,10 @@
 	},
 	"list_module_items": {
 		"method": "GET",
-		"endpoint": "courses/1/modules/1/items",
+		"endpoint": {
+			"url": "courses/1/modules/1/items",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -79,6 +82,7 @@
 	},
 	"get_module_item_by_id": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "courses/1/modules/1/items/1",
 		"data": {
 			"id": 1,

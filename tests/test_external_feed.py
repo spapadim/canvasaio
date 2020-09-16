@@ -1,22 +1,25 @@
 import unittest
 
-import requests_mock
+from aioresponses import aioresponses
 
 from canvasaio import Canvas
 from tests import settings
-from tests.util import register_uris
+from tests.util import register_uris, aioresponse_mock
 
 
-@requests_mock.Mocker()
-class TestExternalFeed(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestExternalFeed(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             register_uris({"course": ["get_by_id", "list_external_feeds"]}, m)
 
-            self.course = self.canvas.get_course(1)
-            self.external_feed = self.course.get_external_feeds()[0]
+            self.course = await self.canvas.get_course(1)
+            self.external_feed = await self.course.get_external_feeds()[0]
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):

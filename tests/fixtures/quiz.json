@@ -143,7 +143,10 @@
 	},
 	"get_all_quiz_submissions": {
 		"method": "GET",
-		"endpoint": "courses/1/quizzes/1/submissions",
+		"endpoint": {
+			"url": "courses/1/quizzes/1/submissions",
+			"ignore_query": true
+		},
 		"data": {
 			"quiz_submissions": [
 				{
@@ -186,7 +189,10 @@
 	},
 	"get_questions": {
 		"method": "GET",
-		"endpoint": "courses/1/quizzes/1/questions",
+		"endpoint": {
+			"url": "courses/1/quizzes/1/questions",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -217,7 +223,10 @@
 	},
 	"get_quiz_submission": {
 		"method": "GET",
-		"endpoint": "courses/1/quizzes/1/submissions/1",
+		"endpoint": {
+			"url": "courses/1/quizzes/1/submissions/1",
+			"ignore_query": true
+		},
 		"data": {
 			"quiz_submissions": [
 				{
@@ -308,7 +317,10 @@
 	},
 	"get_all_quiz_reports": {
 		"method": "GET",
-		"endpoint": "courses/1/quizzes/1/reports",
+		"endpoint": {
+			"url": "courses/1/quizzes/1/reports",
+			"ignore_query": true
+		},
 		"data": [
 			{
 				"id": 1,
@@ -338,7 +350,10 @@
 	},
 	"get_statistics": {
 		"method": "GET",
-		"endpoint": "courses/1/quizzes/1/statistics",
+		"endpoint": {
+			"url": "courses/1/quizzes/1/statistics",
+			"ignore_query": true
+		},
 		"data": {
 			"quiz_statistics": [
                 {

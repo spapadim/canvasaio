@@ -35,7 +35,7 @@ class DiscussionTopic(CanvasObject):
         else:
             raise ValueError("Discussion Topic does not have a course_id or group_id")
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Deletes the discussion topic. This will also delete the assignment.
 
@@ -48,14 +48,14 @@ class DiscussionTopic(CanvasObject):
         :returns: True if the discussion topic was deleted, False otherwise.
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "{}s/{}/discussion_topics/{}".format(
                 self._parent_type, self._parent_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return "deleted_at" in response.json()
+        return "deleted_at" in (await response.json())
 
     def get_entries(self, ids, **kwargs):
         """
@@ -92,7 +92,7 @@ class DiscussionTopic(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_parent(self, **kwargs):
+    async def get_parent(self, **kwargs):
         """
         Return the object that spawned this discussion topic.
 
@@ -101,16 +101,17 @@ class DiscussionTopic(CanvasObject):
         from canvasaio.group import Group
         from canvasaio.course import Course
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "{}s/{}".format(self._parent_type, self._parent_id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
+        response_json = await response.json()
         if self._parent_type == "group":
-            return Group(self._requester, response.json())
+            return Group(self._requester, response_json)
         elif self._parent_type == "course":
-            return Course(self._requester, response.json())
+            return Course(self._requester, response_json)
 
     def get_topic_entries(self, **kwargs):
         """
@@ -139,7 +140,7 @@ class DiscussionTopic(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def mark_as_read(self, **kwargs):
+    async def mark_as_read(self, **kwargs):
         """
         Mark the initial text of the discussion topic as read.
 
@@ -151,16 +152,16 @@ class DiscussionTopic(CanvasObject):
 
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "{}s/{}/discussion_topics/{}/read".format(
                 self._parent_type, self._parent_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.status_code == 204
+        return response.status == 204
 
-    def mark_as_unread(self, **kwargs):
+    async def mark_as_unread(self, **kwargs):
         """
         Mark the initial text of the discussion topic as unread.
 
@@ -172,16 +173,16 @@ class DiscussionTopic(CanvasObject):
 
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "{}s/{}/discussion_topics/{}/read".format(
                 self._parent_type, self._parent_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.status_code == 204
+        return response.status == 204
 
-    def mark_entries_as_read(self, **kwargs):
+    async def mark_entries_as_read(self, **kwargs):
         """
         Mark the discussion topic and all its entries as read.
 
@@ -193,16 +194,16 @@ class DiscussionTopic(CanvasObject):
 
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "{}s/{}/discussion_topics/{}/read_all".format(
                 self._parent_type, self._parent_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.status_code == 204
+        return response.status == 204
 
-    def mark_entries_as_unread(self, **kwargs):
+    async def mark_entries_as_unread(self, **kwargs):
         """
         Mark the discussion topic and all its entries as unread.
 
@@ -214,16 +215,16 @@ class DiscussionTopic(CanvasObject):
 
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "{}s/{}/discussion_topics/{}/read_all".format(
                 self._parent_type, self._parent_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.status_code == 204
+        return response.status == 204
 
-    def post_entry(self, **kwargs):
+    async def post_entry(self, **kwargs):
         """
         Creates a new entry in a discussion topic.
 
@@ -235,14 +236,14 @@ class DiscussionTopic(CanvasObject):
 
         :rtype: :class:`canvasaio.discussion_topic.DiscussionEntry`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "{}s/{}/discussion_topics/{}/entries".format(
                 self._parent_type, self._parent_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update(
             {
                 "discussion_id": self.id,
@@ -251,7 +252,7 @@ class DiscussionTopic(CanvasObject):
         )
         return DiscussionEntry(self._requester, response_json)
 
-    def subscribe(self, **kwargs):
+    async def subscribe(self, **kwargs):
         """
         Subscribe to a topic to receive notifications about new entries.
 
@@ -263,16 +264,16 @@ class DiscussionTopic(CanvasObject):
 
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "{}s/{}/discussion_topics/{}/subscribed".format(
                 self._parent_type, self._parent_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.status_code == 204
+        return response.status == 204
 
-    def unsubscribe(self, **kwargs):
+    async def unsubscribe(self, **kwargs):
         """
         Unsubscribe from a topic to stop receiving notifications about new entries.
 
@@ -284,16 +285,16 @@ class DiscussionTopic(CanvasObject):
 
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "{}s/{}/discussion_topics/{}/subscribed".format(
                 self._parent_type, self._parent_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.status_code == 204
+        return response.status == 204
 
-    def update(self, **kwargs):
+    async def update(self, **kwargs):
         """
         Updates an existing discussion topic for the course or group.
 
@@ -305,14 +306,14 @@ class DiscussionTopic(CanvasObject):
 
         :rtype: :class:`canvasaio.discussion_topic.DiscussionTopic`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "{}s/{}/discussion_topics/{}".format(
                 self._parent_type, self._parent_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return DiscussionTopic(self._requester, response.json())
+        return DiscussionTopic(self._requester, await response.json())
 
 
 class DiscussionEntry(CanvasObject):
@@ -347,7 +348,7 @@ class DiscussionEntry(CanvasObject):
         else:
             raise ValueError("Discussion Topic does not have a course_id or group_id")
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Delete this discussion entry.
 
@@ -359,7 +360,7 @@ class DiscussionEntry(CanvasObject):
 
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "{}s/{}/discussion_topics/{}/entries/{}".format(
                 self._discussion_parent_type,
@@ -369,16 +370,16 @@ class DiscussionEntry(CanvasObject):
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return "deleted_at" in response.json()
+        return "deleted_at" in (await response.json())
 
-    def get_discussion(self, **kwargs):
+    async def get_discussion(self, **kwargs):
         """
         Return the discussion topic object this entry is related to
 
         :rtype: :class:`canvasaio.discussion_topic.DiscussionTopic`
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "{}s/{}/discussion_topics/{}".format(
                 self._discussion_parent_type,
@@ -388,12 +389,12 @@ class DiscussionEntry(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update(
             {"{}_id".format(self._discussion_parent_type): self._discussion_parent_id}
         )
 
-        return DiscussionTopic(self._requester, response.json())
+        return DiscussionTopic(self._requester, response_json)  # XXX was response.json(), probably an inoccuous bug?
 
     def get_replies(self, **kwargs):
         """
@@ -429,7 +430,7 @@ class DiscussionEntry(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def mark_as_read(self, **kwargs):
+    async def mark_as_read(self, **kwargs):
         """
         Mark a discussion entry as read.
 
@@ -441,7 +442,7 @@ class DiscussionEntry(CanvasObject):
 
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "{}s/{}/discussion_topics/{}/entries/{}/read".format(
                 self._discussion_parent_type,
@@ -451,9 +452,9 @@ class DiscussionEntry(CanvasObject):
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.status_code == 204
+        return response.status == 204
 
-    def mark_as_unread(self, **kwargs):
+    async def mark_as_unread(self, **kwargs):
         """
         Mark a discussion entry as unread.
 
@@ -467,7 +468,7 @@ class DiscussionEntry(CanvasObject):
 
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "{}s/{}/discussion_topics/{}/entries/{}/read".format(
                 self._discussion_parent_type,
@@ -477,10 +478,10 @@ class DiscussionEntry(CanvasObject):
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.status_code == 204
+        return response.status == 204
 
     # TODO: update to use correct class
-    def post_reply(self, **kwargs):
+    async def post_reply(self, **kwargs):
         """
         Add a reply to this entry.
 
@@ -493,7 +494,7 @@ class DiscussionEntry(CanvasObject):
 
         :rtype: :class:`canvasaio.discussion_topic.DiscussionEntry`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "{}s/{}/discussion_topics/{}/entries/{}/replies".format(
                 self._discussion_parent_type,
@@ -503,12 +504,12 @@ class DiscussionEntry(CanvasObject):
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update(discussion_id=self.discussion_id)
         return DiscussionEntry(self._requester, response_json)
 
     # TODO: update to use correct class
-    def rate(self, rating, **kwargs):
+    async def rate(self, rating, **kwargs):
         """
         Rate this discussion entry.
 
@@ -527,7 +528,7 @@ class DiscussionEntry(CanvasObject):
         if rating not in (0, 1):
             raise ValueError("`rating` must be 0 or 1.")
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "{}s/{}/discussion_topics/{}/entries/{}/rating".format(
                 self._discussion_parent_type,
@@ -538,9 +539,9 @@ class DiscussionEntry(CanvasObject):
             rating=rating,
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.status_code == 204
+        return response.status == 204
 
-    def update(self, **kwargs):
+    async def update(self, **kwargs):
         """
         Updates an existing discussion entry.
 
@@ -552,7 +553,7 @@ class DiscussionEntry(CanvasObject):
 
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "{}s/{}/discussion_topics/{}/entries/{}".format(
                 self._discussion_parent_type,
@@ -563,7 +564,8 @@ class DiscussionEntry(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        if response.json().get("updated_at"):
-            super(DiscussionEntry, self).set_attributes(response.json())
+        response_json = await response.json()
+        if response_json.get("updated_at"):
+            super(DiscussionEntry, self).set_attributes(response_json)
 
-        return "updated_at" in response.json()
+        return "updated_at" in response_json

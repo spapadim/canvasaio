@@ -6,7 +6,7 @@ class Conversation(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.subject, self.id)
 
-    def edit(self, **kwargs):
+    async def edit(self, **kwargs):
         """
         Update a conversation.
 
@@ -15,17 +15,18 @@ class Conversation(CanvasObject):
 
         :rtype: `bool`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT", "conversations/{}".format(self.id), _kwargs=combine_kwargs(**kwargs)
         )
 
-        if response.json().get("id"):
-            super(Conversation, self).set_attributes(response.json())
+        response_json = await response.json()
+        if response_json.get("id"):
+            super(Conversation, self).set_attributes(response_json)
             return True
         else:
             return False
 
-    def delete(self):
+    async def delete(self):
         """
         Delete a conversation.
 
@@ -34,15 +35,16 @@ class Conversation(CanvasObject):
 
         :rtype: `bool`
         """
-        response = self._requester.request("DELETE", "conversations/{}".format(self.id))
+        response = await self._requester.request("DELETE", "conversations/{}".format(self.id))
 
-        if response.json().get("id"):
-            super(Conversation, self).set_attributes(response.json())
+        response_json = await response.json()
+        if response_json.get("id"):
+            super(Conversation, self).set_attributes(response_json)
             return True
         else:
             return False
 
-    def add_recipients(self, recipients):
+    async def add_recipients(self, recipients):
         """
         Add a recipient to a conversation.
 
@@ -56,14 +58,14 @@ class Conversation(CanvasObject):
         :type recipients:  `list` of `str`
         :rtype: :class:`canvasaio.account.Conversation`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "conversations/{}/add_recipients".format(self.id),
             recipients=recipients,
         )
-        return Conversation(self._requester, response.json())
+        return Conversation(self._requester, await response.json())
 
-    def add_message(self, body, **kwargs):
+    async def add_message(self, body, **kwargs):
         """
         Add a message to a conversation.
 
@@ -75,15 +77,15 @@ class Conversation(CanvasObject):
         :returns: A conversation with only the most recent message.
         :rtype: :class:`canvasaio.account.Conversation`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "conversations/{}/add_message".format(self.id),
             body=body,
             _kwargs=combine_kwargs(**kwargs),
         )
-        return Conversation(self._requester, response.json())
+        return Conversation(self._requester, await response.json())
 
-    def delete_messages(self, remove):
+    async def delete_messages(self, remove):
         """
         Delete messages from this conversation.
 
@@ -97,7 +99,7 @@ class Conversation(CanvasObject):
         :type remove: `list` of `str`
         :rtype: `dict`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST", "conversations/{}/remove_messages".format(self.id), remove=remove
         )
-        return response.json()
+        return await response.json()

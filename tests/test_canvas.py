@@ -29,6 +29,9 @@ class TestCanvas(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
+    async def asyncTearDown(self):
+        await self.canvas.close()
+
     # Canvas()
     def test_init_deprecate_url_contains_version(self, m):
         with self.assertRaises(

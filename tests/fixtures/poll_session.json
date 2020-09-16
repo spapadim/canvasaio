@@ -25,6 +25,7 @@
 	},
 	"create_session": {
 		"method": "POST",
+		"repeat": true,
 		"endpoint": "polls/1/poll_sessions",
 		"data": {
 			"poll_sessions": [
@@ -54,7 +55,10 @@
 	},
 	"get_closed_poll_sessions": {
 		"method": "GET",
-		"endpoint": "poll_sessions/closed",
+		"endpoint": {
+			"url": "poll_sessions/closed",
+			"ignore_query": true
+		},
 		"data": {
 			"poll_sessions": [
 				{
@@ -93,7 +97,10 @@
 	},
 	"get_open_poll_sessions": {
 		"method": "GET",
-		"endpoint": "poll_sessions/opened",
+		"endpoint": {
+			"url": "poll_sessions/opened",
+			"ignore_query": true
+		},
 		"data": {
 			"poll_sessions": [
 				{
@@ -132,6 +139,7 @@
 	},
 	"get_session": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "polls/1/poll_sessions/1",
 		"data": {
 			"poll_sessions": [
@@ -156,7 +164,10 @@
 	},
 	"get_sessions": {
 		"method": "GET",
-		"endpoint": "polls/1/poll_sessions",
+		"endpoint": {
+			"url": "polls/1/poll_sessions",
+			"ignore_query": true
+		},
 		"data": {
 			"poll_sessions": [
 				{
@@ -219,6 +230,7 @@
 	},
 	"update": {
 		"method": "PUT",
+		"repeat": true,
 		"endpoint": "polls/1/poll_sessions/1",
 		"data": {
 			"poll_sessions": [

@@ -6,7 +6,7 @@ class Favorite(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.context_type, self.context_id)
 
-    def remove(self, **kwargs):
+    async def remove(self, **kwargs):
         """
         Remove a course or group from the current user's favorites.
 
@@ -25,7 +25,7 @@ class Favorite(CanvasObject):
             id = self.context_id
             uri_str = "users/self/favorites/groups/{}"
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE", uri_str.format(id), _kwargs=combine_kwargs(**kwargs)
         )
-        return Favorite(self._requester, response.json())
+        return Favorite(self._requester, await response.json())

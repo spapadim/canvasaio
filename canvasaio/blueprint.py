@@ -7,7 +7,7 @@ class BlueprintTemplate(CanvasObject):
     def __str__(self):
         return "{}".format(self.id)
 
-    def associated_course_migration(self, **kwargs):
+    async def associated_course_migration(self, **kwargs):
         """
         Start a migration to update content in all associated courses.
 
@@ -17,18 +17,18 @@ class BlueprintTemplate(CanvasObject):
 
         :rtype: :class:`canvasaio.blueprint.BlueprintMigration`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/blueprint_templates/{}/migrations".format(
                 self.course_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"course_id": self.course_id})
         return BlueprintMigration(self._requester, response_json)
 
-    def change_blueprint_restrictions(
+    async def change_blueprint_restrictions(
         self, content_type, content_id, restricted, **kwargs
     ):
         """
@@ -52,14 +52,14 @@ class BlueprintTemplate(CanvasObject):
         kwargs["content_id"] = content_id
         kwargs["restricted"] = restricted
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/blueprint_templates/{}/restrict_item".format(
                 self.course_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json().get("success", False)
+        return (await response.json()).get("success", False)
 
     def get_associated_courses(self, **kwargs):
         """
@@ -103,7 +103,7 @@ class BlueprintTemplate(CanvasObject):
             "courses/{}/blueprint_templates/{}/unsynced_changes".format(
                 self.course_id, self.id
             ),
-            kwargs=combine_kwargs(**kwargs),
+            _kwargs=combine_kwargs(**kwargs),
         )
 
     def list_blueprint_migrations(self, **kwargs):
@@ -126,10 +126,10 @@ class BlueprintTemplate(CanvasObject):
                 self.course_id, self.id
             ),
             {"course_id": self.course_id},
-            kwargs=combine_kwargs(**kwargs),
+            _kwargs=combine_kwargs(**kwargs),
         )
 
-    def show_blueprint_migration(self, migration, **kwargs):
+    async def show_blueprint_migration(self, migration, **kwargs):
         """
         Return the status of a blueprint migration.
 
@@ -145,18 +145,18 @@ class BlueprintTemplate(CanvasObject):
         """
 
         migration_id = obj_or_id(migration, "migration", (BlueprintMigration,))
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/blueprint_templates/{}/migrations/{}".format(
                 self.course_id, self.id, migration_id
             ),
-            kwargs=combine_kwargs(**kwargs),
+            _kwargs=combine_kwargs(**kwargs),
         )
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"course_id": self.course_id})
         return BlueprintMigration(self._requester, response_json)
 
-    def update_associated_courses(self, **kwargs):
+    async def update_associated_courses(self, **kwargs):
         """
         Add or remove new associations for the blueprint template.
 
@@ -167,14 +167,14 @@ class BlueprintTemplate(CanvasObject):
         :returns: True if the course was added or removed, False otherwise.
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/blueprint_templates/{}/update_associations".format(
                 self.course_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json().get("success", False)
+        return (await response.json()).get("success", False)
 
 
 class BlueprintMigration(CanvasObject):
@@ -201,7 +201,7 @@ class BlueprintMigration(CanvasObject):
             "courses/{}/blueprint_templates/{}/migrations/{}/details".format(
                 self.course_id, self.template_id, self.id
             ),
-            kwargs=combine_kwargs(**kwargs),
+            _kwargs=combine_kwargs(**kwargs),
         )
 
     def get_import_details(self, **kwargs):
@@ -224,7 +224,7 @@ class BlueprintMigration(CanvasObject):
             "courses/{}/blueprint_subscriptions/{}/migrations/{}/details".format(
                 self.course_id, self.subscription_id, self.id
             ),
-            kwargs=combine_kwargs(**kwargs),
+            _kwargs=combine_kwargs(**kwargs),
         )
 
 
@@ -258,10 +258,10 @@ class BlueprintSubscription(CanvasObject):
                 self.course_id, self.id
             ),
             {"course_id": self.id},
-            kwargs=combine_kwargs(**kwargs),
+            _kwargs=combine_kwargs(**kwargs),
         )
 
-    def show_blueprint_import(self, migration, **kwargs):
+    async def show_blueprint_import(self, migration, **kwargs):
         """
         Return the status of an import into a course associated with a blueprint.
 
@@ -277,13 +277,13 @@ class BlueprintSubscription(CanvasObject):
         """
 
         migration_id = obj_or_id(migration, "migration", (BlueprintMigration,))
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/blueprint_subscriptions/{}/migrations/{}".format(
                 self.course_id, self.id, migration_id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        response_json = response.json()
+        response_json = await response.json()
         response_json.update({"course_id": self.course_id})
         return BlueprintMigration(self._requester, response_json)

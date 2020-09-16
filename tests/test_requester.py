@@ -116,7 +116,6 @@ class TestRequester(unittest.IsolatedAsyncioTestCase):
 
     async def test_request_lowercase_boolean(self, m):
         async def callback(url, data, **kwargs):
-            print(f"DEB _fields={data._fields!r}")
             fields = {f[0]["name"]: f[2] for f in data._fields}
             self.assertEqual(2, len(fields))
             self.assertEqual({"test", "test2"}, set(fields.keys()))

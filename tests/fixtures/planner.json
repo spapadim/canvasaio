@@ -1,6 +1,7 @@
 {
   "update_planner_note": {
     "method": "PUT",
+    "repeat": true,
     "endpoint": "planner_notes/1",
     "data": {
       "id": 1,
@@ -21,7 +22,10 @@
   },
   "multiple_planner_notes": {
 		"method": "GET",
-		"endpoint": "planner_notes",
+		"endpoint": {
+      "url": "planner_notes",
+      "ignore_query": true
+    },
 		"data": [
       {
         "id": 2,
@@ -37,7 +41,8 @@
 		"status_code": 200
 	},
   "single_planner_note": {
-		"method": "GET",
+    "method": "GET",
+    "repeat": true,
 		"endpoint": "planner_notes/1",
 		"data": {
       "id": 1,
@@ -47,7 +52,8 @@
 		"status_code": 200
   },
   "create_planner_note": {
-		"method": "POST",
+    "method": "POST",
+    "repeat": true,
 		"endpoint": "planner_notes",
 		"data": {
       "title": "Perform photosynthesis",
@@ -77,7 +83,10 @@
   },
   "multiple_planner_overrides": {
 		"method": "GET",
-		"endpoint": "planner/overrides",
+		"endpoint": {
+      "url": "planner/overrides",
+      "ignore_query": true
+    },
 		"data": [
       {
         "id": 2,
@@ -93,8 +102,12 @@
 		"status_code": 200
 	},
   "single_planner_override": {
-		"method": "GET",
-		"endpoint": "planner/overrides/1",
+    "method": "GET",
+    "repeat": true,
+		"endpoint": {
+      "url": "planner/overrides/1",
+      "ignore_query": true
+    },
 		"data": {
       "id": 1,
       "plannable_id": 11,

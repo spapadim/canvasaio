@@ -1,14 +1,15 @@
 import unittest
 
-import requests_mock
+from aioresponses import aioresponses
 
 from canvasaio import Canvas
 from canvasaio.course_epub_export import CourseEpubExport
 from tests import settings
+from tests.util import aioresponse_mock
 
 
-@requests_mock.Mocker()
-class TestCourseEpubExport(unittest.TestCase):
+@aioresponse_mock
+class TestCourseEpubExport(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
@@ -26,6 +27,9 @@ class TestCourseEpubExport(unittest.TestCase):
                 },
             },
         )
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     def test_str(self, m):
         test_str = str(self.course_epub_export)

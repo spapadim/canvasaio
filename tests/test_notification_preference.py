@@ -1,18 +1,18 @@
 import unittest
 
-import requests_mock
+from aioresponses import aioresponses
 
 from canvasaio import Canvas
 from tests import settings
-from tests.util import register_uris
+from tests.util import register_uris, aioresponse_mock
 
 
-@requests_mock.Mocker()
-class TestNotificationPreference(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestNotificationPreference(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             register_uris(
                 {
                     "user": ["get_by_id", "list_comm_channels"],
@@ -21,9 +21,12 @@ class TestNotificationPreference(unittest.TestCase):
                 m,
             )
 
-            self.user = self.canvas.get_user(1)
-            self.comm_chan = self.user.get_communication_channels()[0]
-            self.notif_pref = self.comm_chan.get_preference("new_announcement")
+            self.user = await self.canvas.get_user(1)
+            self.comm_chan = await self.user.get_communication_channels()[0]
+            self.notif_pref = await self.comm_chan.get_preference("new_announcement")
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):

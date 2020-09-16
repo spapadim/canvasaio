@@ -7,7 +7,7 @@ class CommunicationChannel(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.address, self.id)
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Delete the current communication_channel
 
@@ -18,15 +18,15 @@ class CommunicationChannel(CanvasObject):
         :rtype: bool
         """
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "users/{}/communication_channels/{}".format(self.user_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json().get("workflow_state") == "deleted"
+        return (await response.json()).get("workflow_state") == "deleted"
 
-    def get_preference(self, notification, **kwargs):
+    async def get_preference(self, notification, **kwargs):
         """
         Fetch the preference for the given notification for the given
         communication channel.
@@ -40,17 +40,17 @@ class CommunicationChannel(CanvasObject):
         :type notification: str
         :rtype: :class:`canvasaio.notification_preference.NotificationPreference`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "users/{}/communication_channels/{}/notification_preferences/{}".format(
                 self.user_id, self.id, notification
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        data = response.json()["notification_preferences"][0]
+        data = (await response.json())["notification_preferences"][0]
         return NotificationPreference(self._requester, data)
 
-    def get_preference_categories(self, **kwargs):
+    async def get_preference_categories(self, **kwargs):
         """
         Fetch all notification preference categories for the given communication
         channel.
@@ -62,16 +62,16 @@ class CommunicationChannel(CanvasObject):
 
         :rtype: `list`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "users/{}/communication_channels/{}/notification_preference_categories".format(
                 self.user_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()["categories"]
+        return (await response.json())["categories"]
 
-    def get_preferences(self, **kwargs):
+    async def get_preferences(self, **kwargs):
         """
         Fetch all preferences for the given communication channel.
 
@@ -82,7 +82,7 @@ class CommunicationChannel(CanvasObject):
 
         :rtype: `list`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "users/{}/communication_channels/{}/notification_preferences".format(
                 self.user_id, self.id
@@ -90,9 +90,9 @@ class CommunicationChannel(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-        return response.json()["notification_preferences"]
+        return (await response.json())["notification_preferences"]
 
-    def update_multiple_preferences(self, notification_preferences, **kwargs):
+    async def update_multiple_preferences(self, notification_preferences, **kwargs):
         """
         Change preferences for multiple notifications based on the category
         for a single communication channel.
@@ -118,17 +118,17 @@ class CommunicationChannel(CanvasObject):
                     return False
 
             kwargs["notification_preferences"] = notification_preferences
-            response = self._requester.request(
+            response = await self._requester.request(
                 "PUT",
                 "users/self/communication_channels/{}/notification_preferences".format(
                     self.id
                 ),
                 _kwargs=combine_kwargs(**kwargs),
             )
-            return response.json()["notification_preferences"]
+            return (await response.json())["notification_preferences"]
         return False
 
-    def update_preference(self, notification, frequency, **kwargs):
+    async def update_preference(self, notification, frequency, **kwargs):
         """
         Update the preference for the given notification for the given communication channel.
 
@@ -146,17 +146,17 @@ class CommunicationChannel(CanvasObject):
         :rtype: :class:`canvasaio.notification_preference.NotificationPreference`
         """
         kwargs["notification_preferences[frequency]"] = frequency
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "users/self/communication_channels/{}/notification_preferences/{}".format(
                 self.id, notification
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        data = response.json()["notification_preferences"][0]
+        data = (await response.json())["notification_preferences"][0]
         return NotificationPreference(self._requester, data)
 
-    def update_preferences_by_catagory(self, category, frequency, **kwargs):
+    async def update_preferences_by_catagory(self, category, frequency, **kwargs):
         """
         Change preferences for multiple notifications based on the category
         for a single communication channel.
@@ -176,11 +176,11 @@ class CommunicationChannel(CanvasObject):
         :rtype: :class:`canvasaio.notification_preference.NotificationPreference`
         """
         kwargs["notification_preferences[frequency]"] = frequency
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "users/self/communication_channels/{}/notification_preference_categories/{}".format(
                 self.id, category
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.json()["notification_preferences"]
+        return (await response.json())["notification_preferences"]

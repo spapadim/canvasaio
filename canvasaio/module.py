@@ -8,7 +8,7 @@ class Module(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.name, self.id)
 
-    def edit(self, **kwargs):
+    async def edit(self, **kwargs):
         """
         Update this module.
 
@@ -17,17 +17,17 @@ class Module(CanvasObject):
 
         :rtype: :class:`canvasaio.module.Module`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/modules/{}".format(self.course_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        module_json = response.json()
+        module_json = await response.json()
         module_json.update({"course_id": self.course_id})
 
         return Module(self._requester, module_json)
 
-    def delete(self):
+    async def delete(self):
         """
         Delete this module.
 
@@ -36,15 +36,15 @@ class Module(CanvasObject):
 
         :rtype: :class:`canvasaio.module.Module`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE", "courses/{}/modules/{}".format(self.course_id, self.id)
         )
-        module_json = response.json()
+        module_json = await response.json()
         module_json.update({"course_id": self.course_id})
 
         return Module(self._requester, module_json)
 
-    def relock(self):
+    async def relock(self):
         """
         Reset module progressions to their default locked state and recalculates
         them based on the current requirements.
@@ -57,10 +57,10 @@ class Module(CanvasObject):
 
         :rtype: :class:`canvasaio.module.Module`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT", "courses/{}/modules/{}/relock".format(self.course_id, self.id)
         )
-        module_json = response.json()
+        module_json = await response.json()
         module_json.update({"course_id": self.course_id})
 
         return Module(self._requester, module_json)
@@ -84,7 +84,7 @@ class Module(CanvasObject):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_module_item(self, module_item, **kwargs):
+    async def get_module_item(self, module_item, **kwargs):
         """
         Retrieve a module item by ID.
 
@@ -98,19 +98,19 @@ class Module(CanvasObject):
         """
         module_item_id = obj_or_id(module_item, "module_item", (ModuleItem,))
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "GET",
             "courses/{}/modules/{}/items/{}".format(
                 self.course_id, self.id, module_item_id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        module_item_json = response.json()
+        module_item_json = await response.json()
         module_item_json.update({"course_id": self.course_id})
 
         return ModuleItem(self._requester, module_item_json)
 
-    def create_module_item(self, module_item, **kwargs):
+    async def create_module_item(self, module_item, **kwargs):
         """
         Create a module item.
 
@@ -136,12 +136,12 @@ class Module(CanvasObject):
         else:
             raise RequiredFieldMissing("Dictionary with key 'type' is required.")
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "courses/{}/modules/{}/items".format(self.course_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        module_item_json = response.json()
+        module_item_json = await response.json()
         module_item_json.update({"course_id": self.course_id})
 
         return ModuleItem(self._requester, module_item_json)
@@ -151,7 +151,7 @@ class ModuleItem(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.title, self.id)
 
-    def edit(self, **kwargs):
+    async def edit(self, **kwargs):
         """
         Update this module item.
 
@@ -161,19 +161,19 @@ class ModuleItem(CanvasObject):
         :returns: The updated module item.
         :rtype: :class:`canvasaio.module.ModuleItem`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/modules/{}/items/{}".format(
                 self.course_id, self.module_id, self.id
             ),
             _kwargs=combine_kwargs(**kwargs),
         )
-        module_item_json = response.json()
+        module_item_json = await response.json()
         module_item_json.update({"course_id": self.course_id})
 
         return ModuleItem(self._requester, module_item_json)
 
-    def delete(self):
+    async def delete(self):
         """
         Delete this module item.
 
@@ -182,18 +182,18 @@ class ModuleItem(CanvasObject):
 
         :rtype: :class:`canvasaio.module.ModuleItem`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "courses/{}/modules/{}/items/{}".format(
                 self.course_id, self.module_id, self.id
             ),
         )
-        module_item_json = response.json()
+        module_item_json = await response.json()
         module_item_json.update({"course_id": self.course_id})
 
         return ModuleItem(self._requester, module_item_json)
 
-    def complete(self):
+    async def complete(self):
         """
         Mark this module item as done.
 
@@ -202,18 +202,18 @@ class ModuleItem(CanvasObject):
 
         :rtype: :class:`canvasaio.module.ModuleItem`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "courses/{}/modules/{}/items/{}/done".format(
                 self.course_id, self.module_id, self.id
             ),
         )
-        module_item_json = response.json()
+        module_item_json = await response.json()
         module_item_json.update({"course_id": self.course_id})
 
         return ModuleItem(self._requester, module_item_json)
 
-    def uncomplete(self):
+    async def uncomplete(self):
         """
         Mark this module item as not done.
 
@@ -222,13 +222,13 @@ class ModuleItem(CanvasObject):
 
         :rtype: :class:`canvasaio.module.ModuleItem`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "courses/{}/modules/{}/items/{}/done".format(
                 self.course_id, self.module_id, self.id
             ),
         )
-        module_item_json = response.json()
+        module_item_json = await response.json()
         module_item_json.update({"course_id": self.course_id})
 
         return ModuleItem(self._requester, module_item_json)

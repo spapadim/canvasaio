@@ -7,7 +7,7 @@ class PollChoice(CanvasObject):
     def __str__(self):
         return "{} ({})".format(self.text, self.id)
 
-    def update(self, poll_choice, **kwargs):
+    async def update(self, poll_choice, **kwargs):
         """
         Update an existing choice for this poll.
 
@@ -28,14 +28,14 @@ class PollChoice(CanvasObject):
         else:
             raise RequiredFieldMissing("Dictionary with key 'text' is required.")
 
-        response = self._requester.request(
+        response = await self._requester.request(
             "PUT",
             "polls/{}/poll_choices/{}".format(self.poll_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return PollChoice(self._requester, response.json()["poll_choices"][0])
+        return PollChoice(self._requester, (await response.json())["poll_choices"][0])
 
-    def delete(self, **kwargs):
+    async def delete(self, **kwargs):
         """
         Delete a single poll, based on the poll id.
 
@@ -46,9 +46,9 @@ class PollChoice(CanvasObject):
 
         :rtype: bool
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "DELETE",
             "polls/{}/poll_choices/{}".format(self.poll_id, self.id),
             _kwargs=combine_kwargs(**kwargs),
         )
-        return response.status_code == 204
+        return response.status == 204

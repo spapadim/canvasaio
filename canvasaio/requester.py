@@ -51,6 +51,7 @@ class Requester(object):
         return self.__session
 
     async def close(self):
+        import traceback
         if self.__session != None:
             await self.__session.close()
 
@@ -221,6 +222,8 @@ class Requester(object):
             elif isinstance(arg, datetime):
                 _kwargs[i] = (kw, arg.isoformat())
 
+        # print(f"DBG request() _kwargs = {_kwargs}")
+
         # Determine the appropriate request method.
         if method == "GET":
             req_method = self._get_request
@@ -244,7 +247,6 @@ class Requester(object):
         if _kwargs:
             logger.debug("Data: {data}".format(data=pformat(_kwargs)))
 
-        #print(f"DBG {method} {full_url}\nDBG _kwargs: {_kwargs!r}\nDBG HEADERS: {headers!r}\nDBG JSON: {json!r}")
         response = await req_method(full_url, headers, _kwargs, json=json)
         logger.info(
             "Response: {method} {url} {status}".format(

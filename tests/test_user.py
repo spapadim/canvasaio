@@ -432,7 +432,7 @@ class TestUser(unittest.IsolatedAsyncioTestCase):
         register_uris({"user": ["multiple_content_exports"]}, m)
 
         content_exports = self.user.get_content_exports()
-        content_export_list = [content_export async for content_export in content_exports]
+        content_export_list = [export async for export in content_exports]
 
         self.assertEqual(len(content_export_list), 2)
         self.assertEqual(content_export_list[0].id, 2)
@@ -556,7 +556,7 @@ class TestUser(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(folder_list[0], Folder)
 
         folder_names = ("my_files/" + full_path).split("/")
-        for folder_name, folder in zip(folder_names, folders):
+        for folder_name, folder in zip(folder_names, folder_list):
             self.assertEqual(folder_name, folder.name)
 
     # resolve_path() with null input

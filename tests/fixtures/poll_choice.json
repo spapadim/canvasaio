@@ -1,6 +1,7 @@
 {
 	"create_choice": {
 		"method": "POST",
+		"repeat": true,
 		"endpoint": "polls/1/poll_choices",
 		"data": {
 			"poll_choices": [
@@ -22,6 +23,7 @@
 	},
 	"get_choice": {
 		"method": "GET",
+		"repeat": true,
 		"endpoint": "polls/1/poll_choices/1",
 		"data": {
 			"poll_choices": [
@@ -38,7 +40,10 @@
 	},
 	"get_choices": {
 		"method": "GET",
-		"endpoint": "polls/1/poll_choices",
+		"endpoint": {
+			"url": "polls/1/poll_choices",
+			"ignore_query": true
+		},
 		"data": {
 			"poll_choices": [
 				{
@@ -61,6 +66,7 @@
 	},
 	"update": {
 		"method": "PUT",
+		"repeat": true,
 		"endpoint": "polls/1/poll_choices/1",
 		"data": {
 			"poll_choices": [

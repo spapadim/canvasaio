@@ -1309,6 +1309,9 @@ class TestAccountReport(unittest.IsolatedAsyncioTestCase):
             },
         )
 
+    async def asyncTearDown(self):
+        await self.canvas.close()
+
     # __str__()
     def test__str__(self, m):
         string = str(self.AccountReport)

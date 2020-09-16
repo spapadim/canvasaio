@@ -358,7 +358,7 @@ class User(CanvasObject):
             self._requester,
             "GET",
             "users/{}/content_exports".format(self.id),
-            kwargs=combine_kwargs(**kwargs),
+            _kwargs=combine_kwargs(**kwargs),
         )
 
     async def get_content_migration(self, content_migration, **kwargs):

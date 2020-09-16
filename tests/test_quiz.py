@@ -1,6 +1,6 @@
 import unittest
 
-import requests_mock
+from aioresponses import aioresponses
 
 from canvasaio import Canvas
 from canvasaio.exceptions import RequiredFieldMissing
@@ -18,21 +18,24 @@ from canvasaio.quiz import (
 from canvasaio.quiz_group import QuizGroup
 from canvasaio.paginated_list import PaginatedList
 from tests import settings
-from tests.util import register_uris
+from tests.util import register_uris, aioresponse_mock
 from canvasaio.user import User
 from canvasaio.submission import Submission
 
 
-@requests_mock.Mocker()
-class TestQuiz(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestQuiz(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             register_uris({"course": ["get_by_id"], "quiz": ["get_by_id"]}, m)
 
-            self.course = self.canvas.get_course(1)
-            self.quiz = self.course.get_quiz(1)
+            self.course = await self.canvas.get_course(1)
+            self.quiz = await self.course.get_quiz(1)
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):
@@ -40,10 +43,10 @@ class TestQuiz(unittest.TestCase):
         self.assertIsInstance(string, str)
 
     # broadcast_message()
-    def test_broadcast_message(self, m):
+    async def test_broadcast_message(self, m):
         register_uris({"quiz": ["broadcast_message"]}, m)
 
-        response = self.quiz.broadcast_message(
+        response = await self.quiz.broadcast_message(
             conversations={
                 "body": "please take the quiz",
                 "recipients": "submitted",
@@ -53,18 +56,18 @@ class TestQuiz(unittest.TestCase):
 
         self.assertTrue(response)
 
-    def test_broadcast_message_invalid_params(self, m):
+    async def test_broadcast_message_invalid_params(self, m):
         with self.assertRaises(RequiredFieldMissing):
-            self.quiz.broadcast_message(
+            await self.quiz.broadcast_message(
                 conversations={"body": "no subject here", "recipients": "submitted"}
             )
 
     # edit()
-    def test_edit(self, m):
+    async def test_edit(self, m):
         register_uris({"quiz": ["edit"]}, m)
 
         title = "New Title"
-        edited_quiz = self.quiz.edit(quiz={"title": title})
+        edited_quiz = await self.quiz.edit(quiz={"title": title})
 
         self.assertIsInstance(edited_quiz, Quiz)
         self.assertTrue(hasattr(edited_quiz, "title"))
@@ -73,11 +76,11 @@ class TestQuiz(unittest.TestCase):
         self.assertEqual(edited_quiz.course_id, self.course.id)
 
     # delete()
-    def test_delete(self, m):
+    async def test_delete(self, m):
         register_uris({"quiz": ["delete"]}, m)
 
         title = "Great Title"
-        deleted_quiz = self.quiz.delete(quiz={"title": title})
+        deleted_quiz = await self.quiz.delete(quiz={"title": title})
 
         self.assertIsInstance(deleted_quiz, Quiz)
         self.assertTrue(hasattr(deleted_quiz, "title"))
@@ -86,12 +89,12 @@ class TestQuiz(unittest.TestCase):
         self.assertEqual(deleted_quiz.course_id, self.course.id)
 
     # get_quiz_group()
-    def test_get_quiz_group(self, m):
+    async def test_get_quiz_group(self, m):
         register_uris({"quiz": ["get_by_id_5", "get_quiz_group"]}, m)
 
-        quiz = self.course.get_quiz(5)
+        quiz = await self.course.get_quiz(5)
 
-        result = quiz.get_quiz_group(10)
+        result = await quiz.get_quiz_group(10)
         self.assertIsInstance(result, QuizGroup)
         self.assertEqual(result.id, 10)
         self.assertEqual(result.quiz_id, 5)
@@ -99,7 +102,7 @@ class TestQuiz(unittest.TestCase):
         self.assertEqual(result.course_id, 1)
 
     # create_question_group()
-    def test_create_question_group(self, m):
+    async def test_create_question_group(self, m):
         register_uris({"quiz": ["create_question_group"]}, m)
 
         quiz_group = [
@@ -110,7 +113,7 @@ class TestQuiz(unittest.TestCase):
                 "assessment_question_bank_id": 3,
             }
         ]
-        result = self.quiz.create_question_group(quiz_group)
+        result = await self.quiz.create_question_group(quiz_group)
 
         self.assertIsInstance(result, QuizGroup)
         self.assertEqual(result.id, 1)
@@ -123,32 +126,32 @@ class TestQuiz(unittest.TestCase):
             quiz_group[0].get("assessment_question_bank_id"),
         )
 
-    def test_create_question_group_empty_list(self, m):
+    async def test_create_question_group_empty_list(self, m):
         register_uris({"quiz": ["create_question_group"]}, m)
 
         quiz_group = []
 
         with self.assertRaises(ValueError):
-            self.quiz.create_question_group(quiz_group)
+            await self.quiz.create_question_group(quiz_group)
 
-    def test_create_question_group_incorrect_param(self, m):
+    async def test_create_question_group_incorrect_param(self, m):
         register_uris({"quiz": ["create_question_group"]}, m)
 
         quiz_group = [1]
 
         with self.assertRaises(ValueError):
-            self.quiz.create_question_group(quiz_group)
+            await self.quiz.create_question_group(quiz_group)
 
-    def test_create_question_group_incorrect_dict(self, m):
+    async def test_create_question_group_incorrect_dict(self, m):
         register_uris({"quiz": ["create_question_group"]}, m)
 
         quiz_group = [{}]
 
         with self.assertRaises(RequiredFieldMissing):
-            self.quiz.create_question_group(quiz_group)
+            await self.quiz.create_question_group(quiz_group)
 
     # create_question()
-    def test_create_question(self, m):
+    async def test_create_question(self, m):
         register_uris({"quiz": ["create_question"]}, m)
 
         question_dict = {
@@ -159,18 +162,18 @@ class TestQuiz(unittest.TestCase):
             "correct_comments": "That's correct!",
             "incorrect_comments": "That's wrong!",
         }
-        question = self.quiz.create_question(question=question_dict)
+        question = await self.quiz.create_question(question=question_dict)
 
         self.assertIsInstance(question, QuizQuestion)
         self.assertTrue(hasattr(question, "question_name"))
         self.assertEqual(question.question_name, question_dict["question_name"])
 
     # get_question()
-    def test_get_question(self, m):
+    async def test_get_question(self, m):
         register_uris({"quiz": ["get_question"]}, m)
 
         question_id = 1
-        question = self.quiz.get_question(question_id)
+        question = await self.quiz.get_question(question_id)
 
         self.assertIsInstance(question, QuizQuestion)
         self.assertTrue(hasattr(question, "id"))
@@ -179,11 +182,11 @@ class TestQuiz(unittest.TestCase):
         self.assertEqual(question.question_name, "Pick Correct Answer")
 
     # get_questions()
-    def test_get_questions(self, m):
+    async def test_get_questions(self, m):
         register_uris({"quiz": ["get_questions"]}, m)
 
         questions = self.quiz.get_questions()
-        question_list = [q for q in questions]
+        question_list = [q async for q in questions]
 
         self.assertEqual(len(question_list), 2)
         self.assertIsInstance(question_list[0], QuizQuestion)
@@ -194,10 +197,10 @@ class TestQuiz(unittest.TestCase):
         self.assertEqual(question_list[1].id, 2)
 
     # set_extensions()
-    def test_set_extensions(self, m):
+    async def test_set_extensions(self, m):
         register_uris({"quiz": ["set_extensions"]}, m)
 
-        extension = self.quiz.set_extensions(
+        extension = await self.quiz.set_extensions(
             [{"user_id": 1, "extra_time": 60}, {"user_id": 2, "extra_attempts": 3}]
         )
 
@@ -214,30 +217,30 @@ class TestQuiz(unittest.TestCase):
         self.assertTrue(hasattr(extension[1], "extra_attempts"))
         self.assertEqual(extension[1].extra_attempts, 3)
 
-    def test_set_extensions_not_list(self, m):
+    async def test_set_extensions_not_list(self, m):
         with self.assertRaises(ValueError):
-            self.quiz.set_extensions({"user_id": 1, "extra_time": 60})
+            await self.quiz.set_extensions({"user_id": 1, "extra_time": 60})
 
-    def test_set_extensions_empty_list(self, m):
+    async def test_set_extensions_empty_list(self, m):
         with self.assertRaises(ValueError):
-            self.quiz.set_extensions([])
+            await self.quiz.set_extensions([])
 
-    def test_set_extensions_non_dicts(self, m):
+    async def test_set_extensions_non_dicts(self, m):
         with self.assertRaises(ValueError):
-            self.quiz.set_extensions([("user_id", 1), ("extra_time", 60)])
+            await self.quiz.set_extensions([("user_id", 1), ("extra_time", 60)])
 
-    def test_set_extensions_missing_key(self, m):
+    async def test_set_extensions_missing_key(self, m):
         with self.assertRaises(RequiredFieldMissing):
-            self.quiz.set_extensions([{"extra_time": 60, "extra_attempts": 3}])
+            await self.quiz.set_extensions([{"extra_time": 60, "extra_attempts": 3}])
 
     # get_all_quiz_reports
-    def test_get_all_quiz_reports(self, m):
+    async def test_get_all_quiz_reports(self, m):
         register_uris({"quiz": ["get_all_quiz_reports"]}, m)
 
         reports = self.quiz.get_all_quiz_reports()
         self.assertIsInstance(reports, PaginatedList)
 
-        reports = list(reports)
+        reports = [report async for report in reports]
 
         for report in reports:
             self.assertIsInstance(report, QuizReport)
@@ -247,13 +250,13 @@ class TestQuiz(unittest.TestCase):
         self.assertEqual(len(reports), 2)
 
     # get_submissions()
-    def test_get_submissions(self, m):
+    async def test_get_submissions(self, m):
         register_uris({"quiz": ["get_all_quiz_submissions"]}, m)
         submissions = self.quiz.get_submissions()
 
         self.assertIsInstance(submissions, PaginatedList)
 
-        submission_list = [sub for sub in submissions]
+        submission_list = [sub async for sub in submissions]
 
         self.assertEqual(len(submission_list), 2)
 
@@ -268,22 +271,22 @@ class TestQuiz(unittest.TestCase):
         self.assertEqual(submission_list[1].score, 5)
 
     # get_quiz_report
-    def test_get_quiz_report(self, m):
+    async def test_get_quiz_report(self, m):
         register_uris({"quiz": ["get_quiz_report"]}, m)
 
-        report = self.quiz.get_quiz_report(1)
+        report = await self.quiz.get_quiz_report(1)
         self.assertIsInstance(report, QuizReport)
         self.assertEqual(report.quiz_id, 1)
 
     # get_quiz_report
-    def test_get_statistics(self, m):
+    async def test_get_statistics(self, m):
         register_uris({"quiz": ["get_statistics"]}, m)
 
         statistics = self.quiz.get_statistics()
 
         self.assertIsInstance(statistics, PaginatedList)
 
-        statistic_list = [statistic for statistic in statistics]
+        statistic_list = [statistic async for statistic in statistics]
 
         self.assertEqual(len(statistic_list), 1)
         self.assertIsInstance(statistic_list[0], QuizStatistic)
@@ -292,11 +295,11 @@ class TestQuiz(unittest.TestCase):
         self.assertEqual(len(statistic_list[0].question_statistics), 2)
 
     # get_quiz_submission
-    def test_get_quiz_submission(self, m):
+    async def test_get_quiz_submission(self, m):
         register_uris({"quiz": ["get_quiz_submission"]}, m)
 
         quiz_id = 1
-        quiz_submission = self.quiz.get_quiz_submission(
+        quiz_submission = await self.quiz.get_quiz_submission(
             quiz_id, include=["quiz", "submission", "user"]
         )
 
@@ -316,43 +319,46 @@ class TestQuiz(unittest.TestCase):
         self.assertIsInstance(quiz_submission.user, User)
 
     # create_submission
-    def test_create_submission(self, m):
+    async def test_create_submission(self, m):
         register_uris({"quiz": ["create_submission"]}, m)
 
-        submission = self.quiz.create_submission()
+        submission = await self.quiz.create_submission()
 
         self.assertIsInstance(submission, QuizSubmission)
 
-    def test_create_report(self, m):
+    async def test_create_report(self, m):
         register_uris({"quiz": ["create_report"]}, m)
 
-        report = self.quiz.create_report("student_analysis")
+        report = await self.quiz.create_report("student_analysis")
 
         self.assertIsInstance(report, QuizReport)
         self.assertEqual(report.report_type, "student_analysis")
 
-    def test_create_report_failure(self, m):
+    async def test_create_report_failure(self, m):
         register_uris({"quiz": ["create_report"]}, m)
 
         with self.assertRaises(ValueError):
-            self.quiz.create_report("super_cool_fake_report")
+            await self.quiz.create_report("super_cool_fake_report")
 
 
-@requests_mock.Mocker()
-class TestQuizReport(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestQuizReport(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             requires = {
                 "course": ["get_by_id"],
                 "quiz": ["get_by_id", "get_quiz_report"],
             }
             register_uris(requires, m)
 
-            self.course = self.canvas.get_course(1)
-            self.quiz = self.course.get_quiz(1)
-            self.quiz_report = self.quiz.get_quiz_report(1)
+            self.course = await self.canvas.get_course(1)
+            self.quiz = await self.course.get_quiz(1)
+            self.quiz_report = await self.quiz.get_quiz_report(1)
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):
@@ -360,25 +366,32 @@ class TestQuizReport(unittest.TestCase):
         self.assertIsInstance(string, str)
 
     # abort_or_delete
-    def test_abort_or_delete(self, m):
+    async def test_abort_or_delete(self, m):
         register_uris({"quiz": ["abort_or_delete_report"]}, m)
 
-        resp = self.quiz_report.abort_or_delete()
+        resp = await self.quiz_report.abort_or_delete()
 
         self.assertEqual(resp, True)
 
     # abort_or_delete
-    def test_abort_or_delete_failure(self, m):
+    async def test_abort_or_delete_failure(self, m):
         register_uris({"quiz": ["abort_or_delete_report_failure"]}, m)
 
-        resp = self.quiz_report.abort_or_delete()
+        resp = await self.quiz_report.abort_or_delete()
 
         self.assertEqual(resp, False)
 
 
-@requests_mock.Mocker()
-class TestQuizSubmission(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestQuizSubmission(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
+        # DBG BEGIN
+        # from tests.util import log_class_method, log_class
+        # from aiohttp import ClientSession
+        # log_class(ClientSession, log_stack=True, log_stack_args=dict(include_args=True))
+        # #log_class_method(ClientSession, "close")
+        # DBG END
+
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
         self.submission = QuizSubmission(
@@ -396,16 +409,28 @@ class TestQuizSubmission(unittest.TestCase):
             },
         )
 
+    async def asyncTearDown(self):
+        # print("DBG enter asyncTearDown()")
+        # import asyncio
+        # from canvasaio.requester import Requester
+        # dbg_requester: Requester = self.canvas._Canvas__requester
+        # dbg_session = await dbg_requester._session
+        # dbg_loop = asyncio.get_running_loop()
+        # print(f"DBG requester = {dbg_requester!r} / session = {dbg_session!r} {dbg_session.closed}")
+        # print(f"DBG loop = {dbg_loop!r}")
+        await self.canvas.close()
+        # print("DBG exit asyncTearDown()")
+
     # __str__()
     def test__str__(self, m):
         string = str(self.submission)
         self.assertIsInstance(string, str)
 
     # complete
-    def test_complete(self, m):
+    async def test_complete(self, m):
         register_uris({"submission": ["complete"]}, m)
 
-        submission = self.submission.complete()
+        submission = await self.submission.complete()
 
         self.assertIsInstance(submission, QuizSubmission)
         self.assertTrue(hasattr(submission, "id"))
@@ -413,17 +438,17 @@ class TestQuizSubmission(unittest.TestCase):
         self.assertTrue(hasattr(submission, "attempt"))
         self.assertTrue(hasattr(submission, "validation_token"))
 
-    def test_complete_no_validation_token(self, m):
+    async def test_complete_no_validation_token(self, m):
         del self.submission.validation_token
 
         with self.assertRaises(RequiredFieldMissing):
-            self.submission.complete()
+            await self.submission.complete()
 
     # get_times
-    def test_get_times(self, m):
+    async def test_get_times(self, m):
         register_uris({"submission": ["get_times"]}, m)
 
-        submission = self.submission.get_times()
+        submission = await self.submission.get_times()
 
         self.assertIsInstance(submission, dict)
         self.assertIn("end_at", submission)
@@ -432,10 +457,10 @@ class TestQuizSubmission(unittest.TestCase):
         self.assertIsInstance(submission["end_at"], str)
 
     # update_score_and_comments
-    def test_update_score_and_comments(self, m):
+    async def test_update_score_and_comments(self, m):
         register_uris({"submission": ["update_score_and_comments"]}, m)
 
-        submission = self.submission.update_score_and_comments(
+        submission = await self.submission.update_score_and_comments(
             quiz_submissions=[
                 {
                     "attempt": 1,
@@ -457,10 +482,10 @@ class TestQuizSubmission(unittest.TestCase):
         self.assertEqual(submission.score, 7)
 
     # get_submission_events
-    def test_get_submission_events(self, m):
+    async def test_get_submission_events(self, m):
         register_uris({"quiz": ["get_submission_events"]}, m)
 
-        events = self.submission.get_submission_events()
+        events = await self.submission.get_submission_events()
         self.assertIsInstance(events, list)
         self.assertIsInstance(events[0], QuizSubmissionEvent)
         self.assertIsInstance(events[1], QuizSubmissionEvent)
@@ -468,10 +493,10 @@ class TestQuizSubmission(unittest.TestCase):
         self.assertEqual(str(events[1]), "page_focused")
 
     # get_submission_questions
-    def test_get_submission_questions(self, m):
+    async def test_get_submission_questions(self, m):
         register_uris({"submission": ["get_submission_questions"]}, m)
 
-        questions = self.submission.get_submission_questions()
+        questions = await self.submission.get_submission_questions()
 
         self.assertIsInstance(questions, list)
         self.assertIsInstance(questions[0], QuizSubmissionQuestion)
@@ -479,22 +504,22 @@ class TestQuizSubmission(unittest.TestCase):
         self.assertTrue(hasattr(questions[0], "flagged"))
 
     # answer_submission_questions
-    def test_answer_submission_questions(self, m):
+    async def test_answer_submission_questions(self, m):
         register_uris({"submission": ["answer_submission_questions"]}, m)
 
-        answered_questions = self.submission.answer_submission_questions()
+        answered_questions = await self.submission.answer_submission_questions()
 
         self.assertIsInstance(answered_questions, list)
         self.assertIsInstance(answered_questions[0], QuizSubmissionQuestion)
         self.assertTrue(hasattr(answered_questions[0], "id"))
         self.assertTrue(hasattr(answered_questions[0], "flagged"))
 
-    def test_answer_submission_questions_manual_validation_token(self, m):
+    async def test_answer_submission_questions_manual_validation_token(self, m):
         register_uris({"submission": ["answer_submission_questions"]}, m)
 
         del self.submission.validation_token
 
-        answered_questions = self.submission.answer_submission_questions(
+        answered_questions = await self.submission.answer_submission_questions(
             validation_token="new validation token"
         )
 
@@ -503,28 +528,28 @@ class TestQuizSubmission(unittest.TestCase):
         self.assertTrue(hasattr(answered_questions[0], "id"))
         self.assertTrue(hasattr(answered_questions[0], "flagged"))
 
-    def test_answer_submission_questions_no_validation_token(self, m):
+    async def test_answer_submission_questions_no_validation_token(self, m):
         del self.submission.validation_token
 
         with self.assertRaises(RequiredFieldMissing):
-            self.submission.answer_submission_questions()
+            await self.submission.answer_submission_questions()
 
     # submit_events()
-    def test_submit_events(self, m):
+    async def test_submit_events(self, m):
         register_uris({"quiz": ["get_submission_events", "submit_events"]}, m)
 
-        test_events = self.submission.get_submission_events()
+        test_events = await self.submission.get_submission_events()
 
-        result = self.submission.submit_events(test_events)
+        result = await self.submission.submit_events(test_events)
         self.assertTrue(result)
 
-    def test_submit_events_fail(self, m):
+    async def test_submit_events_fail(self, m):
         with self.assertRaises(RequiredFieldMissing):
-            self.submission.submit_events([{}])
+            await self.submission.submit_events([{}])
 
 
-@requests_mock.Mocker()
-class TestQuizExtension(unittest.TestCase):
+@aioresponse_mock
+class TestQuizExtension(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
@@ -540,25 +565,42 @@ class TestQuizExtension(unittest.TestCase):
             },
         )
 
+    async def asyncTearDown(self):
+        await self.canvas.close()
+
     # __str__()
     def test__str__(self, m):
         string = str(self.extension)
         self.assertIsInstance(string, str)
 
 
-@requests_mock.Mocker()
-class TestQuizQuestion(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestQuizQuestion(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             register_uris(
                 {"course": ["get_by_id"], "quiz": ["get_by_id", "get_question"]}, m
             )
 
-            self.course = self.canvas.get_course(1)
-            self.quiz = self.course.get_quiz(1)
-            self.question = self.quiz.get_question(1)
+            self.course = await self.canvas.get_course(1)
+            self.quiz = await self.course.get_quiz(1)
+            self.question = await self.quiz.get_question(1)
+
+    # async def asyncTearDown(self):
+    #     await self.canvas.close()
+    async def asyncTearDown(self):
+        # print("DBG enter asyncTearDown()")
+        # import asyncio
+        # from canvasaio.requester import Requester
+        # dbg_requester: Requester = self.canvas._Canvas__requester
+        # dbg_session = await dbg_requester._session
+        # dbg_loop = asyncio.get_running_loop()
+        # print(f"DBG requester = {dbg_requester!r} / session = {dbg_session!r} {dbg_session.closed}")
+        # print(f"DBG loop = {dbg_loop!r}")
+        await self.canvas.close()
+        # print("DBG exit asyncTearDown()")
 
     # __str__()
     def test__str__(self, m):
@@ -566,14 +608,14 @@ class TestQuizQuestion(unittest.TestCase):
         self.assertIsInstance(string, str)
 
     # delete()
-    def test_delete(self, m):
+    async def test_delete(self, m):
         register_uris({"quiz": ["delete_question"]}, m)
 
-        response = self.question.delete()
+        response = await self.question.delete()
         self.assertTrue(response)
 
     # edit()
-    def test_edit(self, m):
+    async def test_edit(self, m):
         register_uris({"quiz": ["edit_question"]}, m)
 
         question_dict = {
@@ -587,7 +629,7 @@ class TestQuizQuestion(unittest.TestCase):
 
         self.assertEqual(self.question.question_name, "Pick Correct Answer")
 
-        response = self.question.edit(question=question_dict)
+        response = await self.question.edit(question=question_dict)
 
         self.assertIsInstance(response, QuizQuestion)
         self.assertIsInstance(self.question, QuizQuestion)
@@ -595,20 +637,23 @@ class TestQuizQuestion(unittest.TestCase):
         self.assertEqual(self.question.question_name, question_dict["question_name"])
 
 
-@requests_mock.Mocker()
-class TestQuizStatistic(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestQuizStatistic(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             register_uris(
                 {"course": ["get_by_id"], "quiz": ["get_by_id", "get_statistics"]}, m
             )
 
-            self.course = self.canvas.get_course(1)
-            self.quiz = self.course.get_quiz(1)
+            self.course = await self.canvas.get_course(1)
+            self.quiz = await self.course.get_quiz(1)
             self.quiz_statistics = self.quiz.get_statistics()
-            self.quiz_statistic = self.quiz_statistics[0]
+            self.quiz_statistic = await self.quiz_statistics[0]
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):
@@ -616,8 +661,8 @@ class TestQuizStatistic(unittest.TestCase):
         self.assertIsInstance(string, str)
 
 
-@requests_mock.Mocker()
-class TestQuizSubmissionEvent(unittest.TestCase):
+@aioresponse_mock
+class TestQuizSubmissionEvent(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
@@ -630,14 +675,17 @@ class TestQuizSubmissionEvent(unittest.TestCase):
             },
         )
 
+    async def asyncTearDown(self):
+        await self.canvas.close()
+
     # __str__()
     def test__str__(self, m):
         string = str(self.submission_event)
         self.assertIsInstance(string, str)
 
 
-@requests_mock.Mocker()
-class TestQuizSubmissionQuestion(unittest.TestCase):
+@aioresponse_mock
+class TestQuizSubmissionQuestion(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
@@ -653,60 +701,63 @@ class TestQuizSubmissionQuestion(unittest.TestCase):
             },
         )
 
+    async def asyncTearDown(self):
+        await self.canvas.close()
+
     # __str__()
     def test__str__(self, m):
         string = str(self.submission_question)
         self.assertIsInstance(string, str)
 
     # flag()
-    def test_flag(self, m):
+    async def test_flag(self, m):
         register_uris({"submission": ["flag_submission_question"]}, m)
 
-        result = self.submission_question.flag()
+        result = await self.submission_question.flag()
 
         self.assertIsInstance(result, bool)
         self.assertTrue(result)
         self.assertTrue(self.submission_question.flagged)
 
-    def test_flag_manual_validation_token(self, m):
+    async def test_flag_manual_validation_token(self, m):
         register_uris({"submission": ["flag_submission_question"]}, m)
 
         del self.submission_question.validation_token
 
-        result = self.submission_question.flag(validation_token="new validation token")
+        result = await self.submission_question.flag(validation_token="new validation token")
 
         self.assertIsInstance(result, bool)
         self.assertTrue(result)
         self.assertTrue(self.submission_question.flagged)
 
-    def test_flag_no_validation_token(self, m):
+    async def test_flag_no_validation_token(self, m):
         del self.submission_question.validation_token
 
         with self.assertRaises(RequiredFieldMissing):
-            self.submission_question.flag()
+            await self.submission_question.flag()
 
     # unflag()
-    def test_unflag(self, m):
+    async def test_unflag(self, m):
         register_uris({"submission": ["unflag_submission_question"]}, m)
 
-        result = self.submission_question.unflag()
+        result = await self.submission_question.unflag()
 
         self.assertIsInstance(result, bool)
         self.assertTrue(result)
         self.assertFalse(self.submission_question.flagged)
 
-    def test_unflag_no_validation_token(self, m):
+    async def test_unflag_no_validation_token(self, m):
         del self.submission_question.validation_token
 
         with self.assertRaises(RequiredFieldMissing):
-            self.submission_question.unflag()
+            await self.submission_question.unflag()
 
-    def test_unflag_manual_validation_token(self, m):
+    async def test_unflag_manual_validation_token(self, m):
         register_uris({"submission": ["unflag_submission_question"]}, m)
 
         del self.submission_question.validation_token
 
-        result = self.submission_question.unflag(
+        result = await self.submission_question.unflag(
             validation_token="new validation token"
         )
 
@@ -715,8 +766,8 @@ class TestQuizSubmissionQuestion(unittest.TestCase):
         self.assertFalse(self.submission_question.flagged)
 
 
-@requests_mock.Mocker()
-class TestQuizAssignmentOverrideSet(unittest.TestCase):
+@aioresponse_mock
+class TestQuizAssignmentOverrideSet(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
@@ -724,6 +775,9 @@ class TestQuizAssignmentOverrideSet(unittest.TestCase):
             self.canvas._Canvas__requester,
             {"quiz_id": "1", "due_dates": None, "all_dates": None},
         )
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):

@@ -44,7 +44,7 @@ class Folder(CanvasObject):
         :type name: str
         :rtype: :class:`canvasaio.folder.Folder`
         """
-        response = self._requester.request(
+        response = await self._requester.request(
             "POST",
             "folders/{}/folders".format(self.id),
             name=name,

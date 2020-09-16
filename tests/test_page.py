@@ -1,22 +1,22 @@
 import unittest
 
-import requests_mock
+from aioresponses import aioresponses
 
 from canvasaio.canvas import Canvas
 from canvasaio.course import Course
 from canvasaio.group import Group
 from canvasaio.page import Page, PageRevision
 from tests import settings
-from tests.util import register_uris
+from tests.util import register_uris, aioresponse_mock
 
 
-@requests_mock.Mocker()
-class TestPage(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestPage(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
 
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             requires = {
                 "course": ["get_by_id"],
                 "group": ["get_by_id", "pages_get_page"],
@@ -24,80 +24,83 @@ class TestPage(unittest.TestCase):
             }
             register_uris(requires, m)
 
-            self.course = self.canvas.get_course(1)
-            self.group = self.canvas.get_group(1)
-            self.page_course = self.course.get_page("my-url")
-            self.page_group = self.group.get_page("my-url")
+            self.course = await self.canvas.get_course(1)
+            self.group = await self.canvas.get_group(1)
+            self.page_course = await self.course.get_page("my-url")
+            self.page_group = await self.group.get_page("my-url")
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):
         string = str(self.page_course)
         self.assertIsInstance(string, str)
 
-    def test_edit(self, m):
+    async def test_edit(self, m):
         register_uris({"page": ["edit"]}, m)
 
         new_title = "New Page"
-        self.page_course.edit(page={"title": new_title})
+        await self.page_course.edit(page={"title": new_title})
 
         self.assertIsInstance(self.page_course, Page)
         self.assertTrue(hasattr(self.page_course, "title"))
         self.assertEqual(self.page_course.title, new_title)
 
-    def test_delete(self, m):
+    async def test_delete(self, m):
         register_uris({"page": ["delete_page"]}, m)
 
         page = self.page_course
-        deleted_page = page.delete()
+        deleted_page = await page.delete()
 
         self.assertIsInstance(deleted_page, Page)
 
     # get_revisions()
-    def test_get_revisions(self, m):
+    async def test_get_revisions(self, m):
         register_uris({"page": ["list_revisions", "list_revisions2"]}, m)
 
         revisions = self.page_course.get_revisions()
-        rev_list = [rev for rev in revisions]
+        rev_list = [rev async for rev in revisions]
 
         self.assertEqual(len(rev_list), 4)
         self.assertIsInstance(rev_list[0], PageRevision)
 
-    def test_show_latest_revision(self, m):
+    async def test_show_latest_revision(self, m):
         register_uris({"page": ["latest_revision"]}, m)
 
-        revision = self.page_course.show_latest_revision()
+        revision = await self.page_course.show_latest_revision()
 
         self.assertIsInstance(revision, PageRevision)
 
-    def test_get_revision_by_id_course(self, m):
+    async def test_get_revision_by_id_course(self, m):
         register_uris({"page": ["get_latest_rev_by_id"]}, m)
 
-        revision_by_id = self.page_course.get_revision_by_id(2)
+        revision_by_id = await self.page_course.get_revision_by_id(2)
         self.assertIsInstance(revision_by_id, PageRevision)
 
-        revision_by_obj = self.page_course.get_revision_by_id(revision_by_id)
+        revision_by_obj = await self.page_course.get_revision_by_id(revision_by_id)
         self.assertIsInstance(revision_by_obj, PageRevision)
 
-    def test_get_revision_by_id_group(self, m):
+    async def test_get_revision_by_id_group(self, m):
         register_uris({"page": ["get_latest_rev_by_id_group"]}, m)
 
-        revision_by_id = self.page_group.get_revision_by_id(2)
+        revision_by_id = await self.page_group.get_revision_by_id(2)
         self.assertIsInstance(revision_by_id, PageRevision)
 
-        revision_by_obj = self.page_group.get_revision_by_id(revision_by_id)
+        revision_by_obj = await self.page_group.get_revision_by_id(revision_by_id)
         self.assertIsInstance(revision_by_obj, PageRevision)
 
-    def test_revert_to_revision_course(self, m):
+    async def test_revert_to_revision_course(self, m):
         register_uris({"page": ["revert_to_revision"]}, m)
 
-        revision = self.page_course.revert_to_revision(3)
+        revision = await self.page_course.revert_to_revision(3)
 
         self.assertIsInstance(revision, PageRevision)
 
-    def test_revert_to_revision_group(self, m):
+    async def test_revert_to_revision_group(self, m):
         register_uris({"page": ["revert_to_revision_group"]}, m)
 
-        revision = self.page_group.revert_to_revision(3)
+        revision = await self.page_group.revert_to_revision(3)
 
         self.assertIsInstance(revision, PageRevision)
 
@@ -126,23 +129,23 @@ class TestPage(unittest.TestCase):
             page.parent_type
 
     # get_parent()
-    def test_get_parent_course(self, m):
+    async def test_get_parent_course(self, m):
         register_uris({"course": ["get_by_id"]}, m)
 
-        self.assertIsInstance(self.page_course.get_parent(), Course)
+        self.assertIsInstance(await self.page_course.get_parent(), Course)
 
-    def test_get_parent_group(self, m):
+    async def test_get_parent_group(self, m):
         register_uris({"group": ["get_by_id"]}, m)
 
-        self.assertIsInstance(self.page_group.get_parent(), Group)
+        self.assertIsInstance(await self.page_group.get_parent(), Group)
 
 
-@requests_mock.Mocker()
-class TestPageRevision(unittest.TestCase):
-    def setUp(self):
+@aioresponse_mock
+class TestPageRevision(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
         self.canvas = Canvas(settings.BASE_URL, settings.API_KEY)
 
-        with requests_mock.Mocker() as m:
+        with aioresponses() as m:
             requires = {
                 "course": ["get_by_id", "get_page"],
                 "group": ["get_by_id", "pages_get_page"],
@@ -150,12 +153,15 @@ class TestPageRevision(unittest.TestCase):
             }
             register_uris(requires, m)
 
-            self.course = self.canvas.get_course(1)
-            self.group = self.canvas.get_group(1)
-            self.page_course = self.course.get_page("my-url")
-            self.page_group = self.group.get_page("my-url")
-            self.revision = self.page_course.get_revision_by_id(2)
-            self.group_revision = self.page_group.get_revision_by_id(2)
+            self.course = await self.canvas.get_course(1)
+            self.group = await self.canvas.get_group(1)
+            self.page_course = await self.course.get_page("my-url")
+            self.page_group = await self.group.get_page("my-url")
+            self.revision = await self.page_course.get_revision_by_id(2)
+            self.group_revision = await self.page_group.get_revision_by_id(2)
+
+    async def asyncTearDown(self):
+        await self.canvas.close()
 
     # __str__()
     def test__str__(self, m):
@@ -184,12 +190,12 @@ class TestPageRevision(unittest.TestCase):
             page.parent_type
 
     # get_parent()
-    def test_get_parent_course(self, m):
+    async def test_get_parent_course(self, m):
         register_uris({"course": ["get_by_id"]}, m)
 
-        self.assertIsInstance(self.revision.get_parent(), Course)
+        self.assertIsInstance(await self.revision.get_parent(), Course)
 
-    def test_get_parent_group(self, m):
+    async def test_get_parent_group(self, m):
         register_uris({"group": ["get_by_id"]}, m)
 
-        self.assertIsInstance(self.group_revision.get_parent(), Group)
+        self.assertIsInstance(await self.group_revision.get_parent(), Group)
