@@ -1,24 +1,36 @@
 import re
 import asyncio
 
-from typing import Optional, Union
+from typing import (
+    overload,
+    Optional, Union, Generic, TypeVar, Type,
+    AsyncIterator, AsyncIterable, Awaitable,
+    List,
+)
 from .requester import Requester
 
 
-class PaginatedList(object):
+T = TypeVar("T")
+TS = TypeVar("TS")
+class PaginatedList(AsyncIterable[T], Generic[T]):
     """
     Abstracts `pagination of Canvas API \
     <https://canvas.instructure.com/doc/api/file.pagination.html>`_.
     """
 
-    async def _async_getitem_single(self, index: int, fut: asyncio.Future):
+    async def _async_getitem_single(self, index: int, fut: asyncio.Future) -> None:
         try:
             await self._get_up_to_index(index)
             fut.set_result(self._elements[index])
         except Exception as e:
             fut.set_exception(e)
 
-    def __getitem__(self, index: Union[int, slice]):
+    @overload
+    def __getitem__(self, index: int) -> Awaitable[T]: pass
+    @overload
+    def __getitem__(self, index: slice) -> "PaginatedList._Slice[T]": pass
+
+    def __getitem__(self, index):
         assert isinstance(index, (int, slice))
         if isinstance(index, int):
             if index < 0:
@@ -33,7 +45,7 @@ class PaginatedList(object):
 
     def __init__(
         self,
-        content_class: type,
+        content_class: Type[T],
         requester: Requester,
         request_method: str,
         first_url: str,
@@ -55,7 +67,7 @@ class PaginatedList(object):
         self._request_method = request_method
         self._root = _root
 
-    async def __aiter__(self):
+    async def __aiter__(self) -> AsyncIterator[T]:
         for element in self._elements:
             yield element
         while self._has_next():
@@ -63,10 +75,10 @@ class PaginatedList(object):
             for element in new_elements:
                 yield element
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<PaginatedList of type {}>".format(self._content_class.__name__)
 
-    async def _get_next_page(self):
+    async def _get_next_page(self) -> List:
         response = await self._requester.request(
             self._request_method, self._next_url, **self._next_params
         )
@@ -102,23 +114,23 @@ class PaginatedList(object):
 
         return content
 
-    async def _get_up_to_index(self, index):
+    async def _get_up_to_index(self, index: int) -> None:
         while len(self._elements) <= index and self._has_next():
             await self._grow()
 
-    async def _grow(self):
+    async def _grow(self) -> List:
         new_elements = await self._get_next_page()
         self._elements += new_elements
         return new_elements
 
-    def _has_next(self):
+    def _has_next(self) -> bool:
         return self._next_url is not None
 
-    def _is_larger_than(self, index):
+    def _is_larger_than(self, index: int) -> bool:
         return len(self._elements) > index or self._has_next()
 
-    class _Slice(object):
-        def __init__(self, the_list: 'PaginatedList', the_slice: slice):
+    class _Slice(AsyncIterable[TS], Generic[TS]):
+        def __init__(self, the_list: 'PaginatedList[TS]', the_slice: slice):
             self._list = the_list
             self._start = the_slice.start or 0
             self._stop = the_slice.stop
@@ -127,7 +139,7 @@ class PaginatedList(object):
             if self._start < 0 or self._stop < 0:
                 raise IndexError("Cannot negative index a PaginatedList slice")
 
-        async def __aiter__(self):
+        async def __aiter__(self) -> AsyncIterator[TS]:
             index = self._start
             while not self._finished(index):
                 if self._list._is_larger_than(index):
@@ -139,5 +151,5 @@ class PaginatedList(object):
                 else:
                     return
 
-        def _finished(self, index):
+        def _finished(self, index: int) -> bool:
             return self._stop is not None and index >= self._stop
