@@ -1,6 +1,16 @@
 Authors
 =======
 
+### Port to asyncio/aiohttp (this fork): 
+  
+Spiros Papadimitriou <spapadim@gmail.com> [@spapadim](https://github.com/spapadim)
+
+### The remaining 99.9% of the work: 
+
+Original authors (see below)
+
+----
+
 Development Lead
 ----------------
 
